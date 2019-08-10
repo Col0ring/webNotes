@@ -2362,9 +2362,9 @@ console.log(str===result);//true
   function myTrim(x) {
       return x.replace(/^\s+|\s+$/gm,'');
   }
-   
-      var str = myTrim("        Hello World!        ");
-      alert(str);
+  
+  var str = myTrim("        Hello World!        ");
+  alert(str);
   ```
 
   

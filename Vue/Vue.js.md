@@ -2530,7 +2530,14 @@ const router = new VueRouter({
     })
     ```
 
-    
+
+
+
+### 13.2 Vue.$forceUpdate
+
+如果使用set还不能刷新,进行深度检索还不行,这时候就需要手动刷新视图,使用`this.$forceUpdate()`可以手动刷新
+
+
 
 ## 14.混入
 
