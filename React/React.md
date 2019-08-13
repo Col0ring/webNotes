@@ -1,8 +1,14 @@
-# React
+
+
+React
 
 ## 1.什么是React?
 
 React 是一个采用声明式，高效而且灵活的用来构建用户界面的框架，可以非常轻松地创建用户交互界面，为应用的每一个状态设计简洁的视图，在数据改变时 React 也可以高效地更新渲染界面
+
+### 1.1 React理念
+
+**react的理念是数据驱动,不操作DOM元素而是直接改变数据来使得页面发生变化,所以尽量不要操作DOM元素，只能改变数据**。而且react可以和其他的框架进行混合使用,react之后控制被选中的标签,所有操作都是在被选中的标签里面进行的,所以只要不去修改被选中的那个标签就可以实现混合使用
 
 
 
@@ -895,6 +901,8 @@ ReactDOM.render(
 );
 ```
 
+**注：**如果组件已经挂载到DOM中，该方法返回对应的本地浏览器 DOM 元素。当**render**返回**null** 或 **false**时，**this.findDOMNode()**也会返回**null**。从DOM 中读取值的时候，该方法很有用，如：获取表单字段的值和做一些 DOM 操作
+
 
 
 ## 5.条件渲染
@@ -1184,4 +1192,730 @@ const content = posts.map((post) =>
 
 
 
-## 7.生命周期
+## 7.组件API
+
+**7个主要的组件API：**
+
+- **设置状态：**setState
+
+- **替换状态：**replaceState
+
+- **设置属性：**setProps
+
+- **替换属性：**replaceProps
+
+- **强制更新：**forceUpdate
+
+- **获取DOM节点：**findDOMNode（在之前已提到）
+
+- **判断组件挂载状态：**isMounted（已废除）
+
+  ```jsx
+  //作为替代,在生命周期中使用这种方法判断
+  componentDidMount() {
+      this.mounted = true;
+  }
+  
+  componentWillUnmount() {
+      this.mounted = false;
+  }
+  ```
+
+  
+
+### 7.1 setState
+
+**setState是React通过继承在一个组件中的方法，该方法可以改变该组件中state值，从而实现更新页面**
+
+**合并nextState和当前state，并重新渲染组件。setState是React事件处理函数中和请求回调函数中触发UI更新的主要方法**
+
+**用法：**`setState(object nextState[, function callback])`
+
+**参数：**
+
+- **nextState**，将要设置的新状态，该状态会和当前的**state**合并
+- **callback**，可选参数，回调函数。该函数会在**setState**设置成功，且组件重新渲染后调用
+
+**注意：**
+
+- **不能在组件内部通过this.state修改状态，因为该状态会在调用setState()后被替换**
+- setState()总是会触发一次组件重绘，除非在shouldComponentUpdate()中实现了一些条件渲染逻辑
+
+```jsx
+class Counter extends React.Component{
+  constructor(props) {
+      super(props);
+      this.state = {clickCount: 0};
+      this.handleClick = this.handleClick.bind(this);
+  }
+  
+  handleClick() {
+    this.setState(function(state) {
+      return {clickCount: state.clickCount + 1};
+    });
+  }
+  render () {
+    return (<h2 onClick={this.handleClick}>点我！点击次数为: {this.state.clickCount}</h2>);
+  }
+}
+ReactDOM.render(
+  <Counter />,
+  document.getElementById('example')
+);
+```
+
+- **setState与后面的几种API都有两种传参方式**，除了传入一个对象之外还可以传入一个函数作为第一个参数，并在该回调函数中返回新的state对象
+
+  ```jsx
+  this.setState((prevState, props) => {
+    return {
+      age: prevState.age + props.age,
+    };
+  });
+  ```
+
+- **State 的更新可能是异步的，**setState()并不会立即改变this.state，而是创建一个即将处理的state。setState()并不一定是同步的，为了提升性能React会批量执行state和DOM渲染，因为 this.props 和 this.state 可能是异步更新的，所以不应该用它们当前的值去计算下一个 state 的值
+
+  ```jsx
+  // Wrong
+  this.setState({
+    counter: this.state.counter + this.props.increment,
+  });
+  ```
+
+  要修复它，请使用第二种形式的 setState() 来接受一个函数而不是一个对象。 该函数将接收先前的状态作为第一个参数，将此次更新被应用时的props做为第二个参数
+
+  ```jsx
+  // Correct
+  //第一个参数为原来的状态值
+  this.setState((prevState, props) => ({
+    counter: prevState.counter + props.increment
+  }));
+  ```
+
+  
+
+### 7.2 replaceState
+
+**replaceState()**方法与**setState()**类似，但是方法只会保留**nextState**中状态，原**state**不在**nextState**中的状态都会被删除，也就是说如果没有写在更新项中的值会被直接删除掉
+
+**用法：**`replaceState(object nextState[, function callback])`
+
+**参数：**
+
+- **nextState**，将要设置的新状态，该状态会替换当前的**state**
+- **callback**，可选参数，回调函数。该函数会在**replaceState**设置成功，且组件重新渲染后调用
+
+
+
+### 7.3 setProps
+
+该方法可以直接改变父组件设置到子组件的值（单方面改变子组件中映射的父组件的值，不会改变父组件的值本身），设置组件属性，并重新渲染组件。
+
+**props**相当于组件的数据流，它总是会从父组件向下传递至所有的子组件中。当和一个外部的JavaScript应用集成时，我们可能会需要向组件传递数据或通知**React.render()**组件需要重新渲染，可以使用**setProps()**。
+
+更新组件，可以在节点上再次调用**React.render()**，也可以通过**setProps()**方法改变组件属性，触发组件重新渲染
+
+**用法：**`setProps(object nextProps[, function callback])`
+
+**参数：**
+
+- **nextProps**，将要设置的新属性，该状态会和当前的**props**合并
+- **callback**，可选参数，回调函数。该函数会在**setProps**设置成功，且组件重新渲染后调用
+
+
+
+### 7.3 replaceProps
+
+**replaceProps()**方法与**setProps**类似，但它会删除原有 prop
+
+**用法：**`replaceProps(object nextProps[, function callback])`
+
+**参数：**
+
+- **nextProps**，将要设置的新属性，该属性会替换当前的**props**
+- **callback**，可选参数，回调函数。该函数会在**replaceProps**设置成功，且组件重新渲染后调用
+
+
+
+### 7.4 forceUpdate
+
+**forceUpdate()方法会使组件调用自身的render()方法重新渲染组件，组件的子组件也会调用自己的render()。**但是，组件重新渲染时，依然会读取this.props和this.state，如果状态没有改变，那么React只会更新DOM
+
+forceUpdate()方法适用于this.props和this.state之外的组件重绘（如：修改了this.state后），通过该方法通知React需要调用render()，所以该方法相当于用户手动自己调用页面渲染
+
+**注意：**一般来说，应该尽量避免使用forceUpdate()，而仅从this.props和this.state中读取状态并由React触发render()调用
+
+**用法：**`forceUpdate([function callback])`
+
+**参数：**
+
+- **callback**，可选参数，回调函数。该函数会在组件**render()**方法调用后调用
+
+
+
+## 8.组件生命周期
+
+**组件的生命周期可分成三个状态：（以下是16.3前常用的，但是几个will会在17.0弃用）**
+
+- **Mounting：**已插入真实 DOM
+  - **constructor：**构造函数，在创建组件的时候调用一次
+  - **componentWillMount**：在渲染前调用,在客户端也在服务端
+  - **render：**渲染UI
+  - **componentDidMount** : 在第一次渲染后调用，只在客户端。之后组件已经生成了对应的DOM结构，可以通过this.getDOMNode()来进行访问。 如果想和其他JavaScript框架一起使用，可以在这个方法中调用setTimeout, setInterval或者发送AJAX请求等操作(防止异步操作阻塞UI)
+- **Updating：**正在被重新渲染
+  - **componentWillReceiveProps** 在组件接收到一个新的 prop (更新后)时被调用。这个方法在初始化render时不会被调用
+  - **shouldComponentUpdate** 返回一个布尔值。在组件接收到新的props或者state时被调用。在初始化时或者使用forceUpdate时不被调用
+    可以在你确认不需要更新组件时使用
+  - **componentWillUpdate**在组件接收到新的props或者state但还没有render时被调用。在初始化时不会被调用
+  - **componentDidUpdate** 在组件完成更新后立即调用。在初始化时不会被调用
+- **Unmounting：**已移出真实 DOM
+  - **componentWillUnmount：**在组件从 DOM 中移除之前立刻被调用，大多数在这个阶段都是用来保存数据的
+
+```jsx
+class Button extends React.Component {
+  constructor(props) {
+      super(props);
+      this.state = {data: 0};
+      this.setNewNumber = this.setNewNumber.bind(this);
+  }
+  
+  setNewNumber() {
+    this.setState({data: this.state.data + 1})
+  }
+  render() {
+      return (
+         <div>
+            <button onClick = {this.setNewNumber}>INCREMENT</button>
+            <Content myNumber = {this.state.data}></Content>
+         </div>
+      );
+    }
+}
+ 
+ 
+class Content extends React.Component {
+  componentWillMount() {
+      console.log('Component WILL MOUNT!')
+  }
+  componentDidMount() {
+       console.log('Component DID MOUNT!')
+  }
+  componentWillReceiveProps(newProps) {
+        console.log('Component WILL RECEIVE PROPS!')
+  }
+  shouldComponentUpdate(newProps, newState) {
+        return true;
+  }
+  componentWillUpdate(nextProps, nextState) {
+        console.log('Component WILL UPDATE!');
+  }
+  componentDidUpdate(prevProps, prevState) {
+        console.log('Component DID UPDATE!')
+  }
+  componentWillUnmount() {
+         console.log('Component WILL UNMOUNT!')
+  }
+ 
+    render() {
+      return (
+        <div>
+          <h3>{this.props.myNumber}</h3>
+        </div>
+      );
+    }
+}
+ReactDOM.render(
+   <div>
+      <Button />
+   </div>,
+  document.getElementById('example')
+);
+```
+
+![img](https://upload-images.jianshu.io/upload_images/5287253-bd799f87556b5ecc.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1000/format/webp)
+
+### 8.1 getDerivedStateFromProps与getSnapshotBeforeUpdate
+
+- **static getDerivedStateFromProps(nextProps, prevState)** 在组件创建时和更新时的render方法之前调用，它应该返回一个对象来更新状态，或者返回null来不更新任何内容
+
+  **注意：**这个函数是一个静态函数，也就是说不能在里面调用this的方法
+
+  ```jsx
+  static getDerivedStateFromProps(nextProps, prevState) {
+    //根据nextProps和prevState计算出预期的状态改变，返回结果会被送给setState
+  }
+  ```
+
+  **该方法也是用来代替上面三个will的方法,上面三个wll能实现的功能都可以在这里实现**
+
+- **getSnapshotBeforeUpdate()** 被调用于render之后，可以读取但无法使用DOM的时候。它使组件可以在可能更改之前从DOM捕获一些信息（例如滚动位置）。此生命周期返回的任何值都将作为参数传递给componentDidUpdate()
+
+  ```jsx
+  class ScrollingList extends React.Component {
+    constructor(props) {
+      super(props);
+      this.listRef = React.createRef();
+    }
+  
+    getSnapshotBeforeUpdate(prevProps, prevState) {
+      //我们是否要添加新的 items 到列表?
+      // 捕捉滚动位置，以便我们可以稍后调整滚动.
+      if (prevProps.list.length < this.props.list.length) {
+        const list = this.listRef.current;
+        return list.scrollHeight - list.scrollTop;
+      }
+      return null;
+    }
+  
+    componentDidUpdate(prevProps, prevState, snapshot) {
+      //如果我们有snapshot值, 我们已经添加了 新的items.
+      // 调整滚动以至于这些新的items 不会将旧items推出视图。
+      // (这边的snapshot是 getSnapshotBeforeUpdate方法的返回值)
+      if (snapshot !== null) {
+        const list = this.listRef.current;
+        list.scrollTop = list.scrollHeight - snapshot;
+      }
+    }
+  
+    render() {
+      return (
+        <div ref={this.listRef}>{/* ...contents... */}</div>
+      );
+    }
+  }
+  ```
+
+![img](https://pic1.zhimg.com/80/v2-930c5299db442e73dbb1d2f9c92310d4_hd.jpg)
+
+
+
+## 9.表单控件
+
+**React对于表单控件做处理，不像原生的表单一样填写，而是需要通过onChange事件与事件对象属性value等相互结合实现双向数据绑定（React是单向数据流，但是是通过这种方法和Vue一样实现双向数据绑定）**
+
+在 HTML 当中，像 `<input>`, `<textarea>`, 和 `<select>` 这类表单元素会维持自身状态，并根据用户输入进行更新。但在React中，可变的状态通常保存在组件的状态属性中，**并且只能用 setState() 方法进行更新**
+
+**注意：**如果在React的表单控件中还是用原生的方法使用表单控件会没有作用，而且如果设置了默认值的value而不使用onChange事件React会丢出警告，并且表单默认值也不是改在value属性上,因为这个属性应该是一个动态的属性，**React中应该使用另外一个H5表单控件属性defaultValue来显示表单的默认值**
+
+**在React中的两种表单控件**
+
+- **非受控型（非约束型）表单控件：**用户输入的值我们根本不知道，也无法进行操作，这种表单控件没有将自己的状态与React联系起来
+- **受控型（约束型）表单控件：**让React管理表单的数据，能够监视表单的一举一动
+
+```jsx
+class HelloMessage extends React.Component {
+  constructor(props) {
+      super(props);
+      this.state = {value: 'Hello Runoob!'};
+      this.handleChange = this.handleChange.bind(this);
+  }
+ 
+  handleChange(event) {
+    this.setState({value: event.target.value});
+  }
+  render() {
+    var value = this.state.value;
+    return <div>
+            <input type="text" value={value} onChange={this.handleChange} /> 
+            <h4>{value}</h4>
+           </div>;
+  }
+}
+ReactDOM.render(
+  <HelloMessage />,
+  document.getElementById('example')
+);
+```
+
+### 9.1 在子组件使用表单
+
+需要在父组件通过创建事件句柄 (**handleChange**) ，并作为 prop (**updateStateProp**) 传递到子组件上
+
+```jsx
+class Content extends React.Component {
+  render() {
+    return  <div>
+            <input type="text" value={this.props.myDataProp} onChange={this.props.updateStateProp} /> 
+            <h4>{this.props.myDataProp}</h4>
+            </div>;
+  }
+}
+class HelloMessage extends React.Component {
+  constructor(props) {
+      super(props);
+      this.state = {value: 'Hello Runoob!'};
+      this.handleChange = this.handleChange.bind(this);
+  }
+ 
+  handleChange(event) {
+    this.setState({value: event.target.value});
+  }
+  render() {
+    var value = this.state.value;
+    return <div>
+            <Content myDataProp = {value} 
+              updateStateProp = {this.handleChange}></Content>
+           </div>;
+  }
+}
+ReactDOM.render(
+  <HelloMessage />,
+  document.getElementById('example')
+);
+```
+
+
+
+### 9.2 表单元素类型
+
+在React中，所有的表单元素的值都需要通过onChange事件来改变，除了`checkbox`多选框与`radio`单选框是通过`checked`之外，所有的表单元素都是通过value属性来判断绑定的值的
+
+- **select下拉菜单**
+
+  **在 React 中，不使用 selected 属性，而在根 select 标签上用 value 属性来表示选中项**
+
+  ```jsx
+  class FlavorForm extends React.Component {
+    constructor(props) {
+      super(props);
+      this.state = {value: 'coconut'};
+   
+      this.handleChange = this.handleChange.bind(this);
+      this.handleSubmit = this.handleSubmit.bind(this);
+    }
+   
+    handleChange(event) {
+      this.setState({value: event.target.value});
+    }
+   
+    handleSubmit(event) {
+      alert('Your favorite flavor is: ' + this.state.value);
+      event.preventDefault();
+    }
+   
+    render() {
+      return (
+        <form onSubmit={this.handleSubmit}>
+          <label>
+            选择您最喜欢的网站
+            <select value={this.state.value} onChange={this.handleChange}>
+              <option value="gg">Google</option>
+              <option value="rn">Runoob</option>
+              <option value="tb">Taobao</option>
+              <option value="fb">Facebook</option>
+            </select>
+          </label>
+          <input type="submit" value="提交" />
+        </form>
+      );
+    }
+  }
+   
+  ReactDOM.render(
+    <FlavorForm />,
+    document.getElementById('example')
+  );
+  ```
+
+- **radio**
+
+  ```jsx
+  class FlavorForm extends React.Component {
+    constructor(props) {
+      super(props);
+      this.state = {
+          value:0
+      };
+   
+      this.handleChange = this.handleChange.bind(this);
+      this.handleSubmit = this.handleSubmit.bind(this);
+    }
+   
+    handleChange(e) {
+      this.setState({
+          value:e.target.value
+      });
+    }
+   
+    handleSubmit(event) {
+      console.log(this.state.value)
+      event.preventDefault();
+    }
+   
+    render() {
+      return (
+        <form onSubmit={this.handleSubmit}>
+          <label>
+            选择您最喜欢的网站
+            <input 
+                value={0} 
+                checked={this.state.value === 0} 
+                onChange={this.handleChange}
+                />Google
+               <input 
+                value={1} 
+                checked={this.state.value === 2} 
+                onChange={this.handleChange}
+                />Runoob
+          </label>
+          <input type="submit" value="提交" />
+        </form>
+      );
+    }
+  }
+   
+  ReactDOM.render(
+    <FlavorForm />,
+    document.getElementById('example')
+  );
+  ```
+
+- **checkbox**
+
+  ```jsx
+  class FlavorForm extends React.Component {
+    constructor(props) {
+      super(props);
+      this.state = {
+          arr:[{
+              value:'Google',
+              checked:false
+          },
+          {
+              value:'Runoob',
+              checked:false
+          },
+          {
+              value:'Taobao',
+              checked:false
+          },
+          {
+              value:'Facebook',
+          	checked:false         
+          }]
+      };
+   
+      this.handleChange = this.handleChange.bind(this);
+      this.handleSubmit = this.handleSubmit.bind(this);
+    }
+   
+    handleChange(index) {
+      let arr = this.state.arr;
+      arr[index].checked = !arr[index].checked
+      this.setState({
+          arr
+      });
+    }
+   
+    handleSubmit(event) {
+      console.log(this.state.arr)
+      event.preventDefault();
+    }
+   
+    render() {
+      return (
+        <form onSubmit={this.handleSubmit}>
+          <label>
+            选择您最喜欢的网站
+              {
+                  this.state.arr.length>0&&this.state.arr.map((item,index)=>{
+  						return (
+                          <div key={index}>
+                              <input 
+                                  type="checkbox" 
+                                  checked={item.checked} 
+                                  onChange={this.handleChange(index)}/>
+                          </div>
+                          
+                          )
+                  })
+              }
+          </label>
+          <input type="submit" value="提交" />
+        </form>
+      );
+    }
+  }
+   
+  ReactDOM.render(
+    <FlavorForm />,
+    document.getElementById('example')
+  );
+  ```
+
+
+
+### 9.3 多个表单
+
+当处理多个 input 元素时，可以通过给每个元素添加一个 name 属性，来让处理函数根据 **event.target.name** 的值来选择做什么
+
+```jsx
+class Reservation extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isGoing: true,
+      numberOfGuests: 2
+    };
+ 
+    this.handleInputChange = this.handleInputChange.bind(this);
+  }
+ 
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+ 
+    this.setState({
+      [name]: value
+    });
+  }
+ 
+  render() {
+    return (
+      <form>
+        <label>
+          是否离开:
+          <input
+            name="isGoing"
+            type="checkbox"
+            checked={this.state.isGoing}
+            onChange={this.handleInputChange} />
+        </label>
+        <br />
+        <label>
+          访客数:
+          <input
+            name="numberOfGuests"
+            type="number"
+            value={this.state.numberOfGuests}
+            onChange={this.handleInputChange} />
+        </label>
+      </form>
+    );
+  }
+}
+```
+
+
+
+
+## 10.脚手架
+
+- 使用`npm i create-react-app -g`全局安装脚手架工具
+- cd到指定目录通过`create-react-app 项目名`创建一个react项目（注意项目名必须是小写字母或下划线）
+- 使用`npm start`启动项目，使用`npm run build`打包项目
+- 默认启动的时候会占有3000端口，如果端口被占用会默认一次加一
+
+**目录结构**
+
+- **public目录：**静态资源目录,如静态html,css,js
+- **src目录：**资源目录，包含组件（component）和图片、html、css、js
+
+### 10.1 图片引入问题
+
+当使用脚手架时，在使用以前直接写字符串的方式引入本地图片的路径会自动在前面加上public目录来查找（包括写在外部CSS的背景图片）,所以应该写在public目录中,而如果不是在public目录中的话需要使用`require('图片相对路径')`的方式引入模块来作为img标签的src属性值，这样才能正常渲染出来
+
+**注意：**在用require的时候相对路径引用同级时一定要在前面加上`./`，如果不加会在`node_modules`中查找
+
+```jsx
+import React from 'react'
+import logo from './logo.svg'//外部引入图片作为对象
+import './App.css'
+
+function App() {
+  return (
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        <img src="/static/1.jpg" alt="" />
+        {
+        	//该目录应该是从public目录开始的    
+        }
+        <p>
+          Edit <code>src/App.js</code> and save to reload.
+        </p>
+        <a
+          className="App-link"
+          href="https://reactjs.org"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Learn React
+        </a>
+      </header>
+    </div>
+  )
+}
+
+export default App
+```
+
+
+
+## 11.路由
+
+### 11.1 react-router
+
+- 路由概念
+
+  - 路由作用
+
+  - react-router
+
+    - 提供了一些router的核心api，静态的
+      - Router, Route, Switch等，但是它没有提供dom操作进行跳转的api
+
+  - React-router-dom
+
+    - 提供了BrowserRouter, Route, Link等api，动态的
+      - 我们可以通过DOM的事件控制路由
+
+  - BrowerserRouter路由和HashRouter路由
+
+    - 是路由的基本
+    - 就像路由器一样去管理网络及给每个接入进来的用户分发ip
+    - 是一个大容器 包裹着路由
+    - HashRouter它是通过hash值来对路由进行控制。如果你使用HashRouter，你的路由就会默认有这个#。
+    - BrowerserRouter它的原理是使用HTML5 history API (pushState, replaceState, popState)来使你的内容随着url动态改变的，如果放在二级目录下给BrowerserRouter增加个属性
+
+  - Switch
+
+    - 会用来包裹Route，它里面不能放其他html元素，用来只显示一个路由
+
+  - Route
+
+    - 控制路径对应显示的组件
+    - 标签属性有exact、path以及component
+      - exact 是严格匹配，控制匹配到/路径时不会再继续向下匹配
+      - path 是标识路由的路径
+        - /path/:id路由参数
+      - component 则表示路径对应显示的组件
+
+  - Link和NavLink
+
+    - 两者都是可以控制路由跳转的
+
+    - NavLink的api更多
+
+    - Link标签有to属性
+
+      - to可以接受string或者一个object，来控制url
+
+    - NavLink它可以为当前选中的路由设置类名、样式以及回调函数等
+
+      ```js
+      <NavLink  exact activeClassName='select'> to='/'</NavLink>
+      ```
+
+  - Redirect
+
+    - 重定向
+      - 属性 from='*' to='/'
+    - 404
+
+  - params与query
+
+    - this.props.match 来获取路由(/news/list123)参数
+    - 可以通过node-url 来获取路由(/news/list?id=123&a=456&b=789)参数

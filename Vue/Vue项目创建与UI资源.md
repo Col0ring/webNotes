@@ -24,7 +24,7 @@
 
 
 
-### 1.4  安装vue-cli
+### 1.4  安装vue-cli（2.x）
 
 在命令行窗口输入 `cnpm i -g vue-cli` 全局安装vue-cli脚手架
 
@@ -97,3 +97,37 @@
 - **muse-ui**
 
   **链接：**https://muse-ui.org/#/zh-CN/tabs
+
+
+
+## 3.Vue-cli 3.x
+
+**在Vue-cli 3.x中项目创建方式与2.x中有所不同**
+
+### 3.1 创建项目
+
+运行`vue create 项目名`，可自己选择配置也可使用默认配置，都可以创建完之后再添加一些插件
+
+
+
+### 3.2 运行项目
+
+使用`npm run serve`运行项目
+
+
+
+### 3.3 安装插件
+
+在Vue-cli 3.x中内置了插件按照机制,可以使用`vue add 插件名`直接进行安装并且改变项目结构（所以应该小心它修改代码），如`vue add element`安装element-ui
+
+**注意：**
+
+- 插件只能一个个安装，不能向npm一样同时安装
+- vuex与vue-router也可以通过这个来安装,`vue add router`、`vue add vuex`
+- 通过vue add只能安装与vue相关的插件，如果是其他插件还是需要npm才能安装
+
+
+
+### 3.4 项目打包
+
+还是使用`npm run build`命令进行打包
