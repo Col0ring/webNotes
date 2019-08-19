@@ -2127,7 +2127,6 @@ for (let s of strings) {
       }
     }
   }
-  
   ```
 
   ```typescript

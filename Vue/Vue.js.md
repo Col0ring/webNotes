@@ -2319,6 +2319,81 @@ const router = new VueRouter({
 
 
 
+### 11.9 hash与history
+
+- **hash模式：**使用 URL 的 hash 来模拟一个完整的 URL，于是当 URL 改变时，页面不会重新加载，如`http://localhost:8080/#/view`。hash 虽然出现URL中，但不会被包含在HTTP请求中，对后端完全没有影响，因此改变hash不会重新加载页面
+- **history模式：**URL 就像正常的 url，比较好看，如：`http://localhost:8080/view`。利用了HTML5 History Interface 中新增的pushState() 和replaceState() 方法。需要特定浏览器支持，并且history模式会出现404 的情况，需要后台配置
+
+**注：**vue-router默认是使用hash模式的，不需要额外的配置，如果想使用history模式路由，前后端都需要进行相应的配置
+
+
+
+**为什么需要后台配置：**
+
+在开发阶段还没有部署到服务器上无论hash还是history模式的路由都可以正常使用，但是**部署到服务器上的时候只有hash路由能够正常使用**。因为处理应用启动最初的 `/` 这样的请求应该没问题，但当用户来回跳转并在 `/accounts/123` 刷新时，服务器就会收到来自 `/accounts/123` 的请求，**这时需要处理这个 URL 并在响应中包含 JavaScript 应用代码，如果在服务器上找不到这个请求的文件就会报404错误**
+
+
+
+#### 11.9.1 history模式配置
+
+- **前端**
+
+```js
+// 前端只需要改变mode的值为history就可以了
+const router = new VueRouter({
+  mode: 'history',
+  routes: []
+})
+```
+
+- **后端**
+  - **history模式下配置nginx**
+
+    ```js
+    location / {
+      try_files $uri $uri/ /index.html;
+    }
+    ```
+
+  - **history模式下配置Apache**
+
+    ```html
+    <IfModule mod_rewrite.c>
+      RewriteEngine On
+      RewriteBase /
+      RewriteRule ^index\.html$ - [L]
+      RewriteCond %{REQUEST_FILENAME} !-f
+      RewriteCond %{REQUEST_FILENAME} !-d
+      RewriteRule . /index.html [L]
+    </IfModule>
+    ```
+
+  - **history模式下配置Node.js**	
+
+    ```js
+    const http = require('http')
+    const fs = require('fs')
+    const httpPort = 80
+    
+    http.createServer((req, res) => {
+      fs.readFile('index.htm', 'utf-8', (err, content) => {
+        if (err) {
+          console.log('We cannot open "index.htm" file.')
+        }
+    
+        res.writeHead(200, {
+          'Content-Type': 'text/html; charset=utf-8'
+        })
+    
+        res.end(content)
+      })
+    }).listen(httpPort, () => {
+      console.log('Server listening on: http://localhost:%s', httpPort)
+    })
+    ```
+
+
+
 ## 12.watch与computed
 
 ### 12.1 watch

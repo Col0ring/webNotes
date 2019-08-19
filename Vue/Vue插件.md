@@ -16,7 +16,7 @@ npm i codemirror --save
   </div>
 </template>
 
-<script type="text/ecmascript-6">
+<script>
 // 引入全局实例
 import _CodeMirror from 'codemirror'
 
@@ -210,4 +210,90 @@ export default {
 }
 </style>
 ```
+
+
+
+## 2.vue-json-viewer
+
+**将json字符串在网页显示出来，可伸缩**
+
+```shell
+npm install vue-json-viewer --save
+```
+
+```vue
+<template>
+  <div class="app-container">
+    <div>
+      <el-collapse v-model="activeNames">
+        <el-collapse-item
+          v-for="(item,index) in dataList"
+          :name="index+1"
+          :key="index"
+          :title="item.name"
+        >
+          <el-row :gutter="100">
+            <el-col :span="11">
+              <div>
+                <json-viewer :value="item.value"></json-viewer>
+              </div>
+            </el-col>
+            <el-col :span="11">
+              <div>
+                <json-viewer :value="item.value"></json-viewer>
+              </div>
+            </el-col>
+          </el-row>
+        </el-collapse-item>
+      </el-collapse>
+    </div>
+  </div>
+</template>
+
+<script>
+import JsonViewer from 'vue-json-viewer'
+export default {
+  components: {
+    'json-viewer': JsonViewer
+  },
+  data() {
+    return {
+      activeNames: [],
+      dataList: [
+        {
+          name: '1',
+          value: {
+            total: 25,
+            limit: 10,
+            skip: 0,
+            links: {
+              previous: undefined,
+              next: function() {}
+            }
+          }
+        },
+        {
+          name: '2',
+          value: {
+            total: 25,
+            limit: 10,
+            skip: 0,
+            links: {
+              previous: undefined,
+              next: function() {}
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+</script>
+<style lang='scss' scoped>
+</style>
+```
+
+**具体属性**
+
+![img](https://img-blog.csdnimg.cn/20181116163654402.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3Nhbmxpbmd3dQ==,size_16,color_FFFFFF,t_70)
 

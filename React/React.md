@@ -1,6 +1,4 @@
-
-
-React
+# React
 
 ## 1.什么是React?
 
@@ -192,14 +190,14 @@ const element1 = (
         <br/>
         <button
             type="text"
-            onClick={() => {
+            onClick={(e) => {
               handleClick(10, 11)
             }}
           >
             函数传参1
          </button>
         {
-           //可以通过这种二次调用函数传参
+           //可以通过这种二次调用函数传参，这也是推荐的事件传参方式,甚至可以将event事件传入
         }
         <button type="text" onClick={handleClick.bind(null,10,11)}>函数传参2</button>
         {
@@ -225,6 +223,48 @@ function ActionLink() {
   );
 }
 ```
+
+
+
+### 2.5 Fragment
+
+Fragment是一个特殊的标签组件，该组件与Vue中的template类似，在渲染的时候都会将其取出掉，该子类常在最外层包裹render内部的元素（当想要外部额外包裹一层多余函数的时候）
+
+```jsx
+import React,{Fragement} from 'react'
+function ActionLink() {
+  function handleClick(e) {
+    e.preventDefault();
+    console.log('链接被点击');
+  }
+ 
+  return (
+    <React.Fragement>
+    <a href="#" onClick={handleClick}>
+      点我
+    </a>
+     <a href="#" onClick={handleClick}>
+      点我
+     </a>
+    {
+       /*
+       Fragement常常会被结构出来使用
+       	<Fragement>
+        <a href="#" onClick={handleClick}>
+          点我
+        </a>
+         <a href="#" onClick={handleClick}>
+          点我
+         </a>
+         </Fragement>
+       */   
+    }
+      </React.Fragement>
+  );
+}
+```
+
+
 
 
 
@@ -259,9 +299,28 @@ let element = (
 **通过写成函数的形式能将父组件的参数传入到子组件中**
 
 ```jsx
-//无状态组件的props参数就是父组件传入进来的值
+//无状态组件的props参数就是父组件传入进来的值,不想有状态组件可以随时使用this.props获取参数
 function Section(props){
   return <section>主体样式{props.title} {props.data[0]}</section>
+}
+let element = (
+	<div>
+        {
+            //注意下面直接传对象或者数组是不行的,因为来不及进行解析,会报错,下面data中就会报错
+        }
+    	<Setion title="title" data={['内容']}/>
+        {
+            //单标签和双标签都可以,推荐的是单标签
+        }
+    	<Setion></Setion>
+    </div>
+) 
+```
+
+```jsx
+//如果感觉要输入props很麻烦可以直接使用解构的方法
+function Section({data}){
+  return <section>主体样式{props.title} {data[0]}</section>
 }
 let element = (
 	<div>
@@ -360,11 +419,9 @@ ReactDOM.render(
 
 
 
-
-
 #### 3.2.2 props
 
-**state 和 props 主要的区别在于 props是不可变的，而 state 可以根据与用户交互来改变**。这就是为什么有些容器组件需要定义 state 来更新和修改数据。 而子组件只能通过 props 来传递数据
+**state 和 props 主要的区别在于 props是不可变的（只读的），而 state 可以根据与用户交互来改变，并且state只能在当前组件的内部才能访问**。这就是为什么有些容器组件需要定义 state 来更新和修改数据。 而子组件只能通过 props 来传递数据
 
 ```jsx
 function HelloMessage(props) {
@@ -412,7 +469,10 @@ ReactDOM.render(
 
 **Props 验证使用 propTypes，它可以保证我们的应用组件被正确使用，React.PropTypes 提供很多验证器 (validator) 来验证传入数据是否有效。当向 props 传入无效数据时，JavaScript 控制台会抛出警告**
 
+**注：**使用时需要先引入prop-types库，但是如果使用脚手架开发的React项目，下载React时已经安装好了，不需要额外安装
+
 ```jsx
+import PropTypes from 'prop-types';
 //创建一个 Mytitle 组件，属性 title 是必须的且是字符串，非字符串类型会自动转换为字符串
 var title = "菜鸟教程";
 // var title = 123;
@@ -704,6 +764,102 @@ class MyComponent extends React.Component {
 ReactDOM.render(<MyComponent />, document.getElementById('example'))
 ```
 
+##### 3.3.1.1 children
+
+children是父组件传给子组件的props中一个特殊的对象，当我们想传递某些标签之类的内容时，这时候就可以使用chirldren属性（当然也可以按照正常的组件传值的方式通过手动输入属性进行传递）。**说到底该属性与Vue的slot类似**，都是**通过将组件写成双标签的形式在中间写入slot内容**
+
+```jsx
+class List extends React.Component {
+    render() {
+        console.log(this.props)
+        //这时this.props就会多一个chilredn对象,该对象是完全可以直接使用的react元素
+        return (
+            <div>
+                {this.porps.children//会直接渲染出来}                
+            </div>
+        )
+    }
+}
+class MyComponent extends React.Component {
+    render() {
+        return (
+            <div>
+                <List>
+                	<h2>传给子组件的值</h2>
+                </List>
+            </div>
+        )
+    }
+}
+
+ReactDOM.render(<MyComponent />, document.getElementById('example'))
+```
+
+```jsx
+class List extends React.Component {
+    render() {
+        console.log(this.props)
+        //这时this.props就会多一个chilredn对象,该对象是完全可以直接使用的react元素
+        return (
+            <div>
+                {this.porps.children//会直接渲染出来}                
+            </div>
+        )
+    }
+}
+class MyComponent extends React.Component {
+    state={
+		value:123
+    }
+    render() {
+        return (
+            <div>
+                <List>
+                	<h2>传给子组件的值{this.state.value//传入动态的值是插槽最多的用法}</h2>
+                </List>
+            </div>
+        )
+    }
+}
+
+ReactDOM.render(<MyComponent />, document.getElementById('example'))
+```
+
+
+
+##### 3.3.1.2 使用解构
+
+**有时在一个组件中会经常用到父组件传入的属性方法，这个时候如果一直写this.props会感觉很麻烦，如果推荐使用解构的方法进行解构出来，这样会使得我们的代码更加的简单**
+
+**注：**在传参的时候我们也可以通过解构传入，不过这时就只能使用传参时的对象属性了
+
+```jsx
+class List extends React.Component {
+    render() {
+        const {msg} = this.props
+        return (
+            <div>
+                <p>{msg}</p>
+            </div>
+        )
+    }
+}
+class MyComponent extends React.Component {
+    state={
+        msg:"传给子组件的值"
+    }
+    render() {
+        return (
+            <div>
+                <List {...this.state//直接通过解构传参} />
+            </div>
+        )
+    }
+}
+
+ReactDOM.render(<MyComponent />, document.getElementById('example'))
+```
+
 
 
 #### 3.3.2 子组件向父组件传值
@@ -745,6 +901,106 @@ class MyComponent extends React.Component {
 
 ReactDOM.render(<MyComponent />, document.getElementById('example'))
 ```
+
+
+
+### 3.4 constructor与super详解
+
+#### 3.4.1 this与实例
+
+在一般的类中,this就是指向类的实例的，用Chilid类为例，this就相当于`new Child()`，但是**在React中对应类做了封装，this是在原本类的基础上进行了包装，包含了一些React的内部方法，所以这是this就不是简单的new Child()了**
+
+
+
+#### 3.4.2 constructor存在性
+
+ES5 的继承，实质是先创造子类的实例对象`this`，然后再将父类的方法添加到`this`上面。ES6 的继承机制完全不同，实质是先将父类实例对象的属性和方法，加到`this`上面（所以必须先调用`super`方法），然后再用子类的构造函数修改`this`
+
+**如果子类没有定义`constructor`方法，这个方法会被默认添加，也就是说，不管有没有显式定义，任何一个子类都有`constructor`方法**
+
+```js
+class ColorPoint extends Point {
+}
+
+// 等同于
+class ColorPoint extends Point {
+  constructor(...args) {
+    super(...args);
+  }
+}
+// 可见没有写constructor，在执行过程中会自动补上
+```
+
+**由ES6的继承规则得知：**不管子类写不写constructor，在new实例的过程都会给补上constructor。所以，constructor钩子函数并不是不可缺少的，子组件可以在一些情况略去
+
+##### 3.4.2.1 this.constructor
+
+- **有constructor钩子函数的 this.constructor** 
+
+   ![img](https://images2018.cnblogs.com/blog/905482/201806/905482-20180624005200299-97647880.png)
+
+- **无constructor钩子函数的 this.constructor** 
+
+  ![img](https://images2018.cnblogs.com/blog/905482/201806/905482-20180624005249326-760117579.png)
+
+**故：**有constructor钩子函数时候，Child类会多一个constructor方法
+
+
+
+##### 3.4.2.2 this.state
+
+在ES6中想要有state必须要在constructor中进行赋值声明，没有声明的话state就会是null（不过现在用ES7的语法可以直接在Class内部写属性，不写constructor声明state一样可行，不过还是提醒一下）
+
+
+
+#### 3.4.3 super中的props
+
+首先明确，**可以不写constructor，一旦写了constructor，就必须在此函数中写super()，在子类的构造函数中，只有调用`super`之后，才可以使用`this`关键字，否则会报错。这是因为子类实例的构建，基于父类实例，只有`super`方法才能调用父类实例**
+
+```js
+class Point {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+}
+
+class ColorPoint extends Point {
+  constructor(x, y, color) {
+    this.color = color; // ReferenceError
+    super(x, y);
+    this.color = color; // 正确
+  }
+}
+```
+
+
+
+**所以在React中是否需要在super中传入props参数呢？**
+
+- **有props：**
+
+  ![img](https://images2018.cnblogs.com/blog/905482/201806/905482-20180624012646344-1650230433.png)
+
+  ![img](https://images2018.cnblogs.com/blog/905482/201806/905482-20180624012721420-1438956371.png)
+
+- **无props：**
+
+  ![img](https://images2018.cnblogs.com/blog/905482/201806/905482-20180624012912272-763738012.png)
+
+  ![img](https://images2018.cnblogs.com/blog/905482/201806/905482-20180624012955198-135846386.png)
+
+ 
+
+**故：**当想在constructor中使用this.props的时候，super需要加入(props)，不过此时用props也行，用this.props也行，两者实质是一个。如果在custructor生命周期不使用 this.props或者props时候，可以不传入props
+
+
+
+**那么在其他生命周期呢？**
+
+如果constructor中不通过super来接收props，在其他生命周期同样可以使用this.props，**react在除了constructor之外的生命周期已经传入了this.props了，完全不受super(props)的影响**
+
+**故：**super中的props是否接收，只能影响constructor生命周期能否使用this.props，其他的生命周期已默认存在this.props
 
 
 
@@ -846,6 +1102,20 @@ React 支持一种非常特殊的属性**ref**，可以用来绑定到 render() 
       <MyComponent />,
       document.getElementById('example')
     );
+    ```
+
+- **还可以创建一个ref：**可以通过React.createRef()创建Refs并通过ref属性联系到React组件。Refs通常当组件被创建时被分配给实例变量，这样它们就能在组件中被引用
+
+    ```jsx
+    class MyComponent extends React.Component {
+      constructor(props) {
+        super(props);
+        this.myRef = React.createRef();
+      }
+      render() {
+        return <div ref={this.myRef} />;
+      }
+    }
     ```
 
 **注意：**不要在render或render之前对refs进行调用
@@ -1112,7 +1382,7 @@ ReactDOM.render(
 
 ### 6.1 keys
 
-Keys 可以在 DOM 中的某些元素被增加或删除的时候帮助 React 识别哪些元素发生了变化。因此应当给数组中的每一个元素赋予一个确定的标识
+**Keys 可以在 DOM 中的某些元素被增加或删除的时候帮助 React 识别哪些元素发生了变化。**因此应当给数组中的每一个元素赋予一个确定的标识
 
 ```jsx
 const numbers = [1, 2, 3, 4, 5];
@@ -1144,7 +1414,11 @@ const todoItems = todos.map((todo, index) =>
 );
 ```
 
-**注意：**如果列表可以重新排序，不建议使用索引来进行排序，因为这会导致渲染变得很慢
+**注意：**
+
+-  如果列表可以重新排序，不建议使用索引来进行排序，因为这会导致渲染变得很慢
+
+- 组件内部无法访问key值,因为该值是提供给react组件内部使用的
 
 #### 6.1.1 用keys提取组件
 
@@ -1356,10 +1630,10 @@ forceUpdate()方法适用于this.props和this.state之外的组件重绘（如�
 
 ## 8.组件生命周期
 
-**组件的生命周期可分成三个状态：（以下是16.3前常用的，但是几个will会在17.0弃用）**
+**组件的生命周期可分成三个状态：（以下是16.3前常用的，但是几个will（componentWillUnmount除外）会在17.0弃用）**
 
 - **Mounting：**已插入真实 DOM
-  - **constructor：**构造函数，在创建组件的时候调用一次
+  - **constructor：**构造函数，在创建组件的时候调用一次，适合给state对象赋值初始化项目
   - **componentWillMount**：在渲染前调用,在客户端也在服务端
   - **render：**渲染UI
   - **componentDidMount** : 在第一次渲染后调用，只在客户端。之后组件已经生成了对应的DOM结构，可以通过this.getDOMNode()来进行访问。 如果想和其他JavaScript框架一起使用，可以在这个方法中调用setTimeout, setInterval或者发送AJAX请求等操作(防止异步操作阻塞UI)
@@ -1368,9 +1642,9 @@ forceUpdate()方法适用于this.props和this.state之外的组件重绘（如�
   - **shouldComponentUpdate** 返回一个布尔值。在组件接收到新的props或者state时被调用。在初始化时或者使用forceUpdate时不被调用
     可以在你确认不需要更新组件时使用
   - **componentWillUpdate**在组件接收到新的props或者state但还没有render时被调用。在初始化时不会被调用
-  - **componentDidUpdate** 在组件完成更新后立即调用。在初始化时不会被调用
+  - **componentDidUpdate** 在组件完成更新后立即调用。在初始化时不会被调用，在这个阶段通过比较DOM树的更新可以根据情况发送Ajax请求
 - **Unmounting：**已移出真实 DOM
-  - **componentWillUnmount：**在组件从 DOM 中移除之前立刻被调用，大多数在这个阶段都是用来保存数据的
+  - **componentWillUnmount：**在组件中有元素（包含组件和内部的子元素，如删除一个购物车的商品）从 DOM 中移除之前立刻被调用，大多数在这个阶段都是用来保存数据的
 
 ```jsx
 class Button extends React.Component {
@@ -1410,7 +1684,7 @@ class Content extends React.Component {
   componentWillUpdate(nextProps, nextState) {
         console.log('Component WILL UPDATE!');
   }
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps, prevState) {//在该生命周期中实现Vue中的updated和watch的效果
         console.log('Component DID UPDATE!')
   }
   componentWillUnmount() {
@@ -1455,6 +1729,7 @@ ReactDOM.render(
   class ScrollingList extends React.Component {
     constructor(props) {
       super(props);
+      // 创建ref
       this.listRef = React.createRef();
     }
   
@@ -1536,7 +1811,11 @@ ReactDOM.render(
 class Content extends React.Component {
   render() {
     return  <div>
-            <input type="text" value={this.props.myDataProp} onChange={this.props.updateStateProp} /> 
+        	{
+            	//htmlFor用在表单lable这里
+        	}
+        	<label htmlFor="example">Example</label>
+            <input type="text" name="example" value={this.props.myDataProp} onChange={this.props.updateStateProp} /> 
             <h4>{this.props.myDataProp}</h4>
             </div>;
   }
@@ -1748,7 +2027,7 @@ ReactDOM.render(
 
 ### 9.3 多个表单
 
-当处理多个 input 元素时，可以通过给每个元素添加一个 name 属性，来让处理函数根据 **event.target.name** 的值来选择做什么
+当处理多个 input 元素时，可以通过给每个元素添加一个 name 属性，来让处理函数根据 **event.target.name** 的值来选择做什么，**这是进行多个表单处理的最便捷的方法**
 
 ```jsx
 class Reservation extends React.Component {
@@ -1856,66 +2135,998 @@ export default App
 
 ## 11.路由
 
-### 11.1 react-router
+**路由可以让操作者更加简便的控制页面要显示的内容，它可以让操作者向应用中快速地添加视图和数据流，同时保持页面与 URL 间的同步**
 
-- 路由概念
+**在react中有两种路由组件库：**
 
-  - 路由作用
+- **react-router：**提供了一些router的核心api，静态的，如Router, Route, Switch等，但是它没有提供dom操作进行跳转的api
 
-  - react-router
+- **react-router-dom：**提供了BrowserRouter, Route, Link等api，动态的，该组件库是react-router的加强版，我们可以通过DOM的事件控制路由，不过react-router-dom是依耐于react-router的，所以下载这个库也会下载react-router
 
-    - 提供了一些router的核心api，静态的
-      - Router, Route, Switch等，但是它没有提供dom操作进行跳转的api
+### 11.1 BrowerserRouter路由和HashRouter路由
 
-  - React-router-dom
+**在React中这两个组件时路由的基本,进行路由跳转的时候需要跳转的组件都需要放在这两个组件内部**，类似路由器一样去管理网络及给每个接入进来的用户分发ip一样，这两者是一个大容器包裹着路由组件，页面内要进行跳转的UI只会在这个容器中发生变化
 
-    - 提供了BrowserRouter, Route, Link等api，动态的
-      - 我们可以通过DOM的事件控制路由
+#### 11.1.1 HashRouter
 
-  - BrowerserRouter路由和HashRouter路由
+**HashRouter**是通过hash值来对路由进行控制。如果使用HashRouter，你的路由就会默认有#，如果向服务器发送请求，#后面的部分不会作为请求地址，仅仅只会讲#前面的地址作为服务器的请求地址。`<HashRouter>` 使用 URL 的 `hash` 部分（即 `window.location.hash`）来保持 UI 和 URL 的同步
 
-    - 是路由的基本
-    - 就像路由器一样去管理网络及给每个接入进来的用户分发ip
-    - 是一个大容器 包裹着路由
-    - HashRouter它是通过hash值来对路由进行控制。如果你使用HashRouter，你的路由就会默认有这个#。
-    - BrowerserRouter它的原理是使用HTML5 history API (pushState, replaceState, popState)来使你的内容随着url动态改变的，如果放在二级目录下给BrowerserRouter增加个属性
+```jsx
+import { HashRouter } from 'react-router-dom';
 
-  - Switch
+<HashRouter>
+  <App />
+</HashRouter>
+```
 
-    - 会用来包裹Route，它里面不能放其他html元素，用来只显示一个路由
+**注意：**使用 `hash` 记录导航历史不支持 `location.key` 和 `location.state`。在以前的版本中，视图 shim 这种行为，但是仍有一些问题无法解决。任何依赖此行为的代码或插件都将无法正常使用。由于该技术仅用于支持旧式（低版本）浏览器，因此对于一些新式浏览器，鼓励使用 `<BrowserHistory>` 代替
 
-  - Route
+**参数属性：**
 
-    - 控制路径对应显示的组件
-    - 标签属性有exact、path以及component
-      - exact 是严格匹配，控制匹配到/路径时不会再继续向下匹配
-      - path 是标识路由的路径
-        - /path/:id路由参数
-      - component 则表示路径对应显示的组件
++ **basename: string：**所有位置的基准 URL。`basename` 的正确格式是前面有一个前导斜杠，但不能有尾部斜杠
 
-  - Link和NavLink
+  ```jsx
+  <HashRouter basename="/calendar">
+    <Link to="/today" />
+  </HashRouter>
+  ```
 
-    - 两者都是可以控制路由跳转的
+  上例中的 `<Link>` 最终将被呈现为：
 
-    - NavLink的api更多
+  ```jsx
+  <a href="#/calendar/today" />
+  ```
 
-    - Link标签有to属性
++ **getUserConfirmation: func：**用于确认导航的函数，默认使用 `window.confirm`。例如，当从 `/a` 导航至 `/b` 时，会使用默认的 `confirm` 函数弹出一个提示，用户点击确定后才进行导航，否则不做任何处理
 
-      - to可以接受string或者一个object，来控制url
+  ```jsx
+  // 这是默认的确认函数
+  const getConfirmation = (message, callback) => {
+    const allowTransition = window.confirm(message);
+    callback(allowTransition);
+  }
+  
+  <HashRouter getUserConfirmation={getConfirmation} />
+  ```
 
-    - NavLink它可以为当前选中的路由设置类名、样式以及回调函数等
++ **hashType: string：**`window.location.hash` 使用的 `hash` 类型
 
-      ```js
-      <NavLink  exact activeClassName='select'> to='/'</NavLink>
-      ```
+  有如下几种：**默认为 `slash`**
 
-  - Redirect
+  - `slash` - 后面跟一个斜杠，例如 #/ 和 #/sunshine/lollipops
+  - `noslash` - 后面没有斜杠，例如 # 和 #sunshine/lollipops
+  - `hashbang` - Google 风格的 [ajax crawlable](https://developers.google.com/webmasters/ajax-crawling/docs/learn-more)，例如 #!/ 和 #!/sunshine/lollipops
 
-    - 重定向
-      - 属性 from='*' to='/'
-    - 404
 
-  - params与query
 
-    - this.props.match 来获取路由(/news/list123)参数
-    - 可以通过node-url 来获取路由(/news/list?id=123&a=456&b=789)参数
+#### 11.1.2 BrowerserRouter
+
+**BrowerserRoute**r的原理是使用HTML5 history API (pushState, replaceState, popState)来使内容随着url动态改变的，该路由的地址也是真实的地址，如果发送请求会以该地址为请求地址发送
+
+```jsx
+import { BrowserRouter } from 'react-router-dom';
+
+<BrowserRouter
+  basename={string}
+  forceRefresh={bool}
+  getUserConfirmation={func}
+  keyLength={number}
+>
+  <App />
+</BrowserRouter>
+```
+
+**参数属性：**
+
++ **basename: string：**所有位置的基准 URL。如果你的应用程序部署在服务器的子目录，则需要将其设置为子目录。`basename` 的正确格式是前面有一个前导斜杠，但不能有尾部斜杠
+
+  ```jsx
+  <BrowserRouter basename="/calendar">
+    <Link to="/today" />
+  </BrowserRouter>
+  ```
+
+  上例中的 `<Link>` 最终将被呈现为：
+
+  ```jsx
+  <a href="/calendar/today" />
+  ```
+
++ **forceRefresh: bool：**如果为 `true` ，在导航的过程中整个页面将会刷新。一般情况下，只有在不支持 HTML5 history API 的浏览器中使用此功能
+
+  ```jsx
+  const supportsHistory = 'pushState' in window.history;
+  
+  <BrowserRouter forceRefresh={!supportsHistory} />
+  ```
+
++ **getUserConfirmation: func：**用于确认导航的函数，默认使用 `window.confirm`
+
+  ```jsx
+  // 这是默认的确认函数
+  const getConfirmation = (message, callback) => {
+    const allowTransition = window.confirm(message);
+    callback(allowTransition);
+  }
+  
+  <BrowserRouter getUserConfirmation={getConfirmation} />
+  ```
+
+  **注：**需要配合 `<Prompt>` 一起使用
+
++ **keyLength: number：**`location.key` 的长度，默认为 `6`
+
+  ```jsx
+  <BrowserRouter keyLength={12} />
+  ```
+
+##### 11.1.1 BrowerserRouter模式配置
+
+- **BrowerserRouter模式下配置nginx**
+
+  ```js
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+  ```
+
+- **BrowerserRouter模式下配置Apache**
+
+  ```html
+  <IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    RewriteRule ^index\.html$ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.html [L]
+  </IfModule>
+  ```
+
+- **BrowerserRouter模式下配置Node.js**	
+
+  ```js
+  const http = require('http')
+  const fs = require('fs')
+  const httpPort = 80
+  
+  http.createServer((req, res) => {
+    fs.readFile('index.htm', 'utf-8', (err, content) => {
+      if (err) {
+        console.log('We cannot open "index.htm" file.')
+      }
+  
+      res.writeHead(200, {
+        'Content-Type': 'text/html; charset=utf-8'
+      })
+  
+      res.end(content)
+    })
+  }).listen(httpPort, () => {
+    console.log('Server listening on: http://localhost:%s', httpPort)
+  })
+  ```
+
+
+
+#### 11.1.3 注意事项
+
+- 在开发阶段还没有部署到服务器上无论hash还是history模式的路由都可以正常使用，但是**部署到服务器上的时候只有hash路由能够正常使用**
+- 所以服务器需要做好处理 URL 的准备。处理应用启动最初的 `/` 这样的请求应该没问题，但当用户来回跳转并在 `/accounts/123` 刷新时，服务器就会收到来自 `/accounts/123` 的请求，**这时需要处理这个 URL 并在响应中包含 JavaScript 应用代码，如果在服务器上找不到这个请求的文件就会报404错误**
+- 最好再Router内部只有一个直接的子元素
+- 一般情况下是直接包裹最外层的App组件，这样内部的无论做什么都可以直接使用路由其他的组件进行操作了
+
+
+
+### 11.2 Route
+
+`<Route>` 可能是 React Router 中最重要的组件，**最基本的职责是在其 `path` 属性与某个 location 匹配时呈现一些 UI**
+
+#### 11.2.1 Route的渲染方法
+
+使用 `<Route>` 渲染一些内容有以下三种方式：
+
+- **Route component**
+- **Route render**
+- **Route children**
+
+在不同的情况下使用不同的方式。在指定的 `<Route>` 中，**应该只使用其中的一种**。在大多数情况下你会使用 `component`
+
+**注：**三种渲染方式都将为被渲染的组件提供相同的三个路由属性：`match`、`location`和`history`
+
+
+
+#### 11.2.2 参数属性
+
+下面参数属性的前三个是三种渲染方法
+
+- **component：**指定只有当位置匹配时才会渲染的 React 组件，该组件会接收route props（也就是路由自带的三个路由属性）作为属性
+
+  ```jsx
+  const User = ({ match }) => {
+    return <h1>Hello {match.params.username}!</h1>
+  }
+  
+  <Route path="/user/:username" component={User} />
+  ```
+
+  **注意：**当使用 `component`（而不是 `render` 或 `children`）时，Router 将根据指定的组件，使用 `React.createElement` 创建一个新的 React 元素。这意味着，如果你向 `component` 提供一个内联函数，那么每次渲染都会创建一个新组件。这将导致现有组件的卸载和新组件的安装，而不是仅仅更新现有组件。所以，当使用内联函数进行内联渲染时，请使用 `render` 或 `children`
+
+- **render: func：**使用 `render` 可以方便地进行内联渲染和包装，而无需进行上文解释的不必要的组件重装。
+
+  可以传入一个函数，以在位置匹配时调用，而不是使用 `component` 创建一个新的 React 元素。`render` 渲染方式接收所有与 `component` 方式相同的route props
+
+  ```jsx
+  // 方便的内联渲染
+  <Route path="/home" render={() => <div>Home</div>} />
+  
+  // 包装
+  const FadingRoute = ({ component: Component, ...rest }) => (
+    <Route {...rest} render={props => (
+      <FadeIn>
+        {
+             // 需要通过解构获取路由属性
+  	   }
+        <Component {...props} />
+      </FadeIn>
+    )} />
+  )
+  
+  <FadingRoute path="/cool" component={Something} />
+  ```
+
+  **总的来说，render的作用更加强大和全面**
+
+- **children: func：**有时候不论 `path` 是否匹配位置，都想渲染一些内容。在这种情况下，可以使用 `children` 属性。除了不论是否匹配它都会被调用以外，它的工作原理与 `render` 完全一样。
+
+  `children` 渲染方式接收所有与 `component` 和 `render` 方式相同的route props，**除非路由与 URL 不匹配，不匹配时 `match` 为 `null**`。这允许你可以根据路由是否匹配动态地调整用户界面。如下所示，如果路由匹配，我们将添加一个激活类：
+
+  ```jsx
+  const ListItemLink = ({ to, ...rest }) => (
+    <Route path={to} children={({ match }) => (
+      <li className={match ? 'active' : ''}>
+        <Link to={to} {...rest} />
+      </li>
+    )} />
+  )
+  
+  <ul>
+    <ListItemLink to="/somewhere" />
+    <ListItemLink to="/somewhere-else" />
+  </ul>
+  ```
+
+  **对动画效果来说也有大用**
+
+  ```jsx
+  <Route children={({ match, ...rest }) => (
+    {/* Animate 将始终渲染，因此你可以利用生命周期来为其子元素添加进出动画 */}
+    <Animate>
+      {match && <Something {...rest} />}
+    </Animate>
+  )} />
+  ```
+
+- **path:string：**用作标识路由的路径，在后面可以跟params与query参数.可以是 [path-to-regexp](https://www.npmjs.com/package/path-to-regexp) 能够理解的任何有效的 URL 路径
+
+  ```jsx
+  <Route path="/users/:id" component={User} />
+  ```
+
+  **注：**没有定义 `path` 的 `<Route>` 总是会被匹配
+
+- **exact:bool：**严格匹配路由的路径，必须要在与对应的path完全一致的路径时才能匹配成功，如果不写这个在有相同的路径匹配成功时会一起显示组件
+
+  ```jsx
+  <Route exact path="/one" component={OneComponent} />
+  ```
+
+  ![å¾çæè¿°](https://segmentfault.com/img/bV8fyF?w=237&h=69)
+
+- **strict: bool：**如果为 `true`，则具有尾部斜杠的 `path` 仅与具有尾部斜杠的 `location.pathname` 匹配。当 `location.pathname` 中有附加的 URL 片段时，`strict` 就没有效果了
+
+  ```jsx
+  <Route strict path="/one/" component={OneComponent} />
+  ```
+
+  ![å¾çæè¿°](https://segmentfault.com/img/bV8fz8?w=206&h=97)
+
+  **注意：**可以使用 `strict` 来强制规定 `location.pathname` 不能具有尾部斜杠，但是为了做到这一点，`strict` 和 `exact` 必须都是 `true`
+
+  ![å¾çæè¿°](https://segmentfault.com/img/bV8fAP?w=202&h=95)
+
+- **location: object：**一般情况下，`<Route>` 尝试将其 `path` 与当前历史位置（通常是当前的浏览器 URL）进行匹配。但是，也可以传递具有不同路径名的位置进行匹配。当需要将 `<Route>` 与当前历史位置以外的 `location` 进行匹配时，此功能非常有用
+
+  **注：**如果一个 `<Route>` 被包含在一个 `<Switch>` 中，并且需要匹配的位置（或当前历史位置）传递给了 `<Switch>`，那么传递给 `<Route>` 的 `location` 将被 `<Switch>` 所使用的 `location` 覆盖
+
+- **sensitive: bool：**如果为 `true`，进行匹配时将区分大小写
+
+  ```jsx
+  <Route sensitive path="/one" component={OneComponent} />
+  ```
+
+  ![å¾çæè¿°](https://segmentfault.com/img/bV8f5g?w=255&h=98)
+
+```jsx
+import React from 'react'
+import { BrowerserRouter as  Router,Route } from 'react-router-dom'
+import App from './App'
+import About from './About'
+import Inbox from './Inbox'
+
+React.render((
+  <Router>
+      <div>
+      <Route path="/" exact component={App}>
+      <Route path="/about" component={About} />
+      <Route path={"/inbox"} component={Inbox} />
+      </div>
+  </Router>
+), document.body)
+```
+
+**注：**Route必须包含在Router组件类才能使用，不然会报错
+
+
+
+### 11.3 Link和NavLink
+
+**两者都是可以控制路由跳转的，实质上时a标签，不过封装了一些内部的API**，Link标签本身有一个**to**属性，**可以接受string或者一个object，来控制url，**而NavLink则是有更多的API使用，除了控制url跳转，还可以为当前选中的路由设置类名、样式以及回调函数等
+
+#### 11.3.1 Link
+
+```jsx
+import { Link } from 'react-router-dom';
+
+<Link to="/about">About</Link>
+```
+
+**参数属性：**
+
+- **to: string：**一个字符串形式的链接地址，通过 `pathname`、`search` 和 `hash` 属性创建
+
+  ```jsx
+  <Link to='/courses?sort=name' />
+  ```
+
+- **to: object：**一个对象形式的链接地址，可以具有以下任何属性：
+
+  - `pathname` - 要链接到的路径
+  - `search` - 查询参数
+  - `hash` - URL 中的 hash，例如 #the-hash
+  - `state` - 存储到 location 中的额外状态数据
+
+  ```jsx
+  <Link to={{
+    pathname: '/courses',
+    search: '?sort=name',
+    hash: '#the-hash',
+    state: {
+      fromDashboard: true
+    }
+  }} />
+  ```
+
+- **replace: bool：**当设置为 `true` 时，点击链接后将替换历史堆栈中的当前条目，而不是添加新条目。默认为 `false`
+
+  ```jsx
+  <Link to="/courses" replace />
+  ```
+
+- **innerRef: func：**允许访问组件的底层引用
+
+  ```jsx
+  const refCallback = node => {
+    // node 指向最终挂载的 DOM 元素，在卸载时为 null
+  }
+  
+  <Link to="/" innerRef={refCallback} />
+  ```
+
+- **others：**还可以传递一些其它属性，例如 `title`、`id` 或 `className` 等
+
+  ```jsx
+  <Link to="/" className="nav" title="a title">About</Link>
+  ```
+
+
+
+#### 11.3.2 NavLink
+
+一个特殊版本的 `<Link>`，它会在与当前 URL 匹配时为其呈现元素添加样式属性
+
+```jsx
+import { NavLink } from 'react-router-dom';
+
+<NavLink to="/about">About</NavLink>
+```
+
+**参数属性：**
+
+- **activeClassName: string：**当元素处于激活状态时应用的类，默认为 `active`。它将与 `className` 属性一起使用
+
+  ```jsx
+  <NavLink to="/faq" activeClassName="selected">FAQs</NavLink>
+  ```
+
+- **activeStyle: object：**当元素处于激活状态时应用的样式
+
+  ```jsx
+  const activeStyle = {
+    fontWeight: 'bold',
+    color: 'red'
+  };
+  
+  <NavLink to="/faq" activeStyle={activeStyle}>FAQs</NavLink>
+  ```
+
+- **exact: bool：**如果为 `true`，则只有在位置完全匹配时才应用激活类/样式
+
+  ```jsx
+  <NavLink exact to="/profile">Profile</NavLink>
+  ```
+
+- **strict: bool：**如果为 `true`，则在确定位置是否与当前 URL 匹配时，将考虑位置的路径名后面的斜杠
+
+  ```jsx
+  <NavLink strict to="/events/">Events</NavLink>
+  ```
+
+- **isActive: func：**添加额外逻辑以确定链接是否处于激活状态的函数。如果你要做的不仅仅是验证链接的路径名与当前 URL 的路径名相匹配，那么应该使用它
+
+  ```jsx
+  // 只有当事件 id 为奇数时才考虑激活
+  const oddEvent = (match, location) => {
+    if (!match) {
+      return false;
+    }
+    const eventID = parseInt(match.params.eventID);
+    return !isNaN(eventID) && eventID % 2 === 1;
+  }
+  
+  <NavLink to="/events/123" isActive={oddEvent}>Event 123</NavLink>
+  ```
+
+  - **location: object：**`isActive` 默认比较当前历史位置（通常是当前的浏览器 URL）。也可以传递一个不同的位置进行比较
+
+```jsx
+import React from 'react'
+import { BrowerserRouter as  Router,Route,NavLink } from 'react-router-dom'
+import App from './App'
+import About from './About'
+import Inbox from './Inbox'
+
+React.render((
+  <Router>
+      <div>
+      
+       {
+       	//exact精准匹配,不然在其他两个页面一样会显示App页面     
+       }
+      <ul>
+          {
+          	//NavLink组件也需要使用exact来完全匹配
+            //activeClassName是匹配到对应路由是NavLink的活跃样式
+		  }
+          <li><NavLink activeClassName={'hover'} exact to="/">About</NavLink></li>
+          <li><NavLink activeClassName={'hover'} to="/about">About</NavLink></li>
+          <li><NavLink activeClassName={'hover'} to="/inbox">Inbox</NavLink></li>
+        </ul>
+      <Route path="/" exact component={App}>
+      <Route path="/about" component={About} />
+      <Route path="/inbox" component={Inbox} />
+     </div>
+    </Route>
+  </Router>
+), document.body)
+```
+
+
+
+### 11.4 Switch
+
+**用于渲染与路径匹配的第一个子 `<Route>` 或 `<Redirect>`，它里面不能放其他html元素，该组件的作用是用来只显示一个路由，就和JS中的switch用法一样，从上至下进行匹配，匹配到之后就不会再进行匹配了，该组件与Route组件的exact属性一样都是用做处理精准匹配问题的**
+
+```jsx
+import { Switch, Route } from 'react-router';
+
+<Switch>
+  <Route exact path="/" component={Home} />
+  <Route path="/about" component={About} />
+  <Route path="/:user" component={User} />
+  <Route component={NoMatch} />
+</Switch>
+```
+
+当我们在 `/about` 路径时，`<Switch>` 将开始寻找匹配的 `<Route>`。我们知道，`<Route path="/about" />` 将会被正确匹配，这时 `<Switch>` 会停止查找匹配项并立即呈现 `<About>`。同样，如果我们在 `/michael` 路径时，那么 `<User>`会呈现
+
+**同时，这对于动画转换也很有用，因为匹配的 `<Route>` 与前一个渲染位置相同**
+
+```jsx
+<Fade>
+  <Switch>
+    {/* 这里只会渲染一个子元素 */}
+    <Route />
+    <Route />
+  </Switch>
+</Fade>
+
+<Fade>
+  <Route />
+  <Route />
+  {/* 这里总是会渲染两个子元素，也有可能是空渲染，这使得转换更加麻烦 */}
+</Fade>
+```
+
+**参数属性：**
+
+- **location: object：**用于匹配子元素而不是当前历史位置（通常是当前的浏览器 URL）的location对象
+
+- **children: node：**所有 `<Switch>` 的子元素都应该是 `<Route>` 或 `<Redirect>`。只有第一个匹配当前路径的子元素将被呈现。**`<Route>` 组件使用 `path` 属性进行匹配，而 `<Redirect>` 组件使用它们的 `from` 属性进行匹配。没有 `path` 属性的 `<Route>` 或者没有 `from` 属性的 `<Redirect>` 将始终与当前路径匹配。**
+
+  **当在 `<Switch>` 中包含 `<Redirect>` 时，你可以使用任何 `<Route>` 拥有的路径匹配属性**：`path`、`exact` 和 `strict`。`from` 只是 `path` 的别名。并且，**如果给 `<Switch>` 提供一个 `location` 属性，它将覆盖匹配的子元素上的 `location` 属性**
+
+  ```jsx
+  //404的处理方法1
+  <Switch>
+    <Route exact path="/" component={Home} />
+    <Route path="/users" component={Users} />
+    <Redirect from="/accounts" to="/users" />
+    <Route component={NoMatch} />
+  </Switch>
+  ```
+
+  ```jsx
+  //404的处理方法2
+  <Switch>
+    <Route exact path="/" component={Home} />
+    <Route path="/users" component={Users} />
+    <Redirect from="/accounts" to="/users" />
+    <Route path="/404" component={NoMatch} />
+    <Redirect to="/404" />
+  </Switch>
+  ```
+
+```jsx
+import React from 'react'
+import { BrowerserRouter as  Router,Route } from 'react-router-dom'
+import App from './App'
+import About from './About'
+import Inbox from './Inbox'
+import No404 from './No404'
+
+React.render((
+  <Router>
+      <Switch>
+        {
+        	//这个时候如果不完全匹配只会匹配到第一个APP组件      
+        }
+      <Route path="/"  component={App}>
+      <Route path="/about" component={About} />
+      <Route path="/inbox" component={Inbox} />
+       {
+       	//都没有匹配到最后一个全局匹配常用来做404页面       
+       }
+      <Route path="*" component={No404} />
+      </Switch>
+  </Router>
+), document.body)
+```
+
+
+
+### 11.5 Redirect
+
+**该组件可以理解为一个理解执行的方法，与编程式导航类似，只要在页面上渲染了该组件，页面就会立刻重定向到指定的页面（默认是替换网页），所以该组件一般是通过调节渲染的方式渲染到页面上的**，如：进入到404页面后5秒后跳转到首页、将其余路由重定向到404页面（需配合Switch使用，放在Switch最后一个）
+
+```jsx
+import { Route, Redirect } from 'react-router-dom';
+
+<Route exact path="/" render={() => (
+  loggedIn ? (
+    <Redirect to="/dashboard" />
+  ) : (
+    <PublicHomePage />
+  )
+)}
+```
+
+**参数属性：**
+
+- **to: string：**要重定向到的 URL，可以是 [path-to-regexp](https://www.npmjs.com/package/path-to-regexp) 能够理解的任何有效的 URL 路径。所有要使用的 URL 参数必须由 `from` 提供
+
+  ```jsx
+  <Redirect to="/somewhere/else" />
+  ```
+
+- **to: object：**要重定向到的位置，其中 `pathname` 可以是 [path-to-regexp](https://www.npmjs.com/package/path-to-regexp) 能够理解的任何有效的 URL 路径
+
+  ```jsx
+  <Redirect to={{
+    pathname: '/login',
+    search: '?utm=your+face',
+    state: {
+      referrer: currentLocation
+    }
+  }} />
+  ```
+
+  **注：**上例中的 `state` 对象可以在重定向到的组件中通过 `this.props.location.state` 进行访问。而 `referrer` 键（不是特殊名称）将通过路径名 `/login` 指向组件`this.props.location.state.referrer` 进行访问
+
+- **push: bool：**如果为 `true`，重定向会将新的位置推入历史记录，而不是替换当前条目
+
+  ```jsx
+  <Redirect push to="/somewhere/else" />
+  ```
+
+- **from: string：**要从中进行重定向的路径名，可以是 [path-to-regexp](https://www.npmjs.com/package/path-to-regexp) 能够理解的任何有效的 URL 路径。所有匹配的 URL 参数都会提供给 `to`，必须包含在 `to` 中用到的所有参数，`to` 未使用的其它参数将被忽略
+
+  **注意：**只能在 `<Switch>` 组件内使用 `<Redirect from>`，以匹配一个位置
+
+  ```jsx
+  <Switch>
+    <Redirect from='/old-path' to='/new-path' />
+    <Route path='/new-path' component={Place} />
+  </Switch>
+  ```
+
+  ```jsx
+  // 根据匹配参数进行重定向
+  <Switch>
+    <Redirect from='/users/:id' to='/users/profile/:id' />
+    <Route path='/users/profile/:id' component={Profile} />
+  </Switch>
+  ```
+
+  **注意：**经过实践，发现以上“根据匹配参数进行重定向”的示例存在bug，没有效果。`to` 中的 `:id` 并不会继承 `from` 中的 `:id` 匹配的值，而是直接作为字符串显示到浏览器地址栏
+
+- **exact: bool：**完全匹配
+
+- **strict: bool：**严格匹配
+
+```jsx
+//404页面
+import { Route, Redirect } from 'react-router-dom';
+class No404 extends React.Component {
+   state={
+            count:0
+      }
+    constructor(props) {
+        super(props);
+      }
+    componentDidMount(){
+        //5秒后跳转
+        setTimeout({
+          this.setState({
+            count:1
+          })
+        },5000)
+    }
+    render() {
+        return (
+            <div>{this.state.count?<Redirect to="/"></Redirect>:null}</div>
+        );
+    }
+}
+export default No404
+```
+
+```jsx
+//跳转到404
+import React from 'react'
+import { BrowerserRouter as  Router,Route,Redirect } from 'react-router-dom'
+import App from './App'
+import About from './About'
+import Inbox from './Inbox'
+import No404 from './No404'
+
+React.render((
+  <Router>
+      <Switch>
+        {
+        	//这个时候如果不完全匹配只会匹配到第一个APP组件      
+        }
+      <Route path="/"  component={App}>
+      <Route path="/about" component={About} />
+      <Route path="/inbox" component={Inbox} />
+      <Route path="/404" component={No404} />
+      <Redirect to='/404'/>
+      </Switch>
+  </Router>
+), document.body)
+```
+
+
+
+### 11.6 Prompt
+
+用于在位置跳转之前给予用户一些确认信息。当你的应用程序进入一个应该阻止用户导航的状态时（比如表单只填写了一半），弹出一个提示
+
+```jsx
+import { Prompt } from 'react-router-dom';
+
+<Prompt
+  when={formIsHalfFilledOut}
+  message="你确定要离开当前页面吗？"
+/>
+```
+
+**属性参数：**
+
+- **message: string：**当用户试图离开某个位置时弹出的提示信息
+
+  ```jsx
+  <Prompt message="你确定要离开当前页面吗？" />
+  ```
+
+- **message: func：**将在用户试图导航到下一个位置时调用。需要返回一个字符串以向用户显示提示，或者返回 `true` 以允许直接跳转
+
+  ```jsx
+  <Prompt message={location => {
+    const isApp = location.pathname.startsWith('/app');
+  
+    return isApp ? `你确定要跳转到${location.pathname}吗？` : true;
+  }} />
+  ```
+
+  **注：**上例中的 `location` 对象指的是下一个位置（即用户想要跳转到的位置）。你可以基于它包含的一些信息，判断是否阻止导航，或者允许直接跳转
+
+- **when: bool：**在应用程序中，你可以始终渲染 `<Prompt>` 组件，并通过设置 `when={true}` 或 `when={false}` 以阻止或允许相应的导航，而不是根据某些条件来决定是否渲染 `<Prompt>` 组件
+
+  ```jsx
+  <Prompt when={true} message="你确定要离开当前页面吗？" />
+  ```
+
+  **注：**`when` 只有两种情况，当它的值为 `true` 时，会弹出提示信息。如果为 `false` 则不会弹出
+
+
+
+### 11.7 路由参数
+
+**路由参数主要分为两种：params类型与query类型**
+
+- **params：**在React的路由中,可以直接将params解析到对应组件的this.props的match属性中作位一个对象存在
+
+  ```jsx
+  import React from 'react'
+  import { BrowerserRouter as  Router,Route,NavLink } from 'react-router-dom'
+  import App from './App'
+  import About from './About'
+  import Inbox from './Inbox'
+  
+  React.render((
+    <Router>
+        <div>
+        <ul>
+            <li><NavLink activeClassName={'hover'} exact to="/1">About</NavLink></li>
+            <li><NavLink activeClassName={'hover'} to="/about">About</NavLink></li>
+            <li><NavLink activeClassName={'hover'} to="/inbox">Inbox</NavLink></li>
+          </ul>
+        {
+         //加入?表示时可选的参数，这样在路由匹配的时候才不会直接跳过去       
+  	   }
+        <Route path="/:id?" exact component={App}>
+        <Route path="/about" component={About} />
+        <Route path="/inbox" component={Inbox} />
+      </Route>
+      </div>
+    </Router>
+  ), document.body)
+  ```
+
+  ```jsx
+  //App.jsx
+  import React,{Component} from 'react'
+  
+  class App extends Component{
+      render(){
+         	//获取上面得到的id
+          const id = this.props.match.params.id
+          console.log(id)
+          return(
+          	<div>我的id为{id}</div>
+          )
+      }
+  }
+  
+  export default App
+  ```
+
+- **query：**该值通过`?key=value`的形式在url中进行传输,在this.props中只有字符查询字符串形式的参数，并没有作为对象将键值对解析出来，所以一般我们会**引用node中的url模块对query进行解析（当然也可以使用其它的，如query-string）**
+
+  ```jsx
+  import React from 'react'
+  import { BrowerserRouter as  Router,Route,NavLink } from 'react-router-dom'
+  import App from './App'
+  import About from './About'
+  import Inbox from './Inbox'
+  
+  React.render((
+        <div>
+        <ul>
+            <li><NavLink activeClassName={'hover'} exact to="/1">About</NavLink></li>
+            <li><NavLink activeClassName={'hover'} to="/about">About</NavLink></li>
+            <li><NavLink activeClassName={'hover'} to="/inbox">Inbox</NavLink></li>
+          </ul>
+        <Route path="/:id" exact component={App}>
+        <Route path="/about" component={About} />
+        <Route path="/inbox" component={Inbox} />
+      </Route>
+      </div>
+    </Router>
+  ), document.body)
+  ```
+
+  ```shell
+  #下载url模块
+  npm i url -S
+  ```
+
+  ```jsx
+  //App.jsx
+  import React,{Component} from 'react'
+  import Url from 'url'
+  
+  class App extends Component{
+      render(){
+         	//查询字符串的id在props对象的loaction中的search字符串中
+          const search = Url.parse(this.props.location.search,true)
+          //不写第二个参数或第二个参数为false之后进行一级的解析JSON,不会递归解析为JSON对象
+          console.log(search)// 此时search被转化为一个对象
+          const id = search.query.id
+          return(
+          	<div>我的id为{id}</div>
+          )
+      }
+  }
+  
+  export default App
+  ```
+
+- **其余参数**
+
+  路由组件中的其他父组件的传参不能传到对应的子组件中，因为传值实际是传给Route组件，而不是传给想要渲染的那个组件，之所以在子组件中能接收到match等属性是因为Route组件做过传值处理，**想要传入其他参数必须使用Route的reander方法，在render方法内部写上要传的属性**
+
+  **注意：**如果使用render方法渲染就会发现原来的组件没有了路由的一些属性，因为没有通过components传路由无法进行处理，所以需要接受`props`并用`...props`进行展开赋值给需要渲染的组件
+
+  ```jsx
+  import React from 'react'
+  import { BrowerserRouter as  Router,Route,NavLink } from 'react-router-dom'
+  import App from './App'
+  import About from './About'
+  import Inbox from './Inbox'
+  
+  React.render((
+    <Router>
+        <div>
+        <ul>
+            <li><NavLink activeClassName={'hover'} exact to="/1">About</NavLink></li>
+            <li><NavLink activeClassName={'hover'} to="/about">About</NavLink></li>
+            <li><NavLink activeClassName={'hover'} to="/inbox">Inbox</NavLink></li>
+          </ul>
+        <Route path="/:id" exact rednder={(props)=><APP {...props} msg="传给App的值"/>}>
+        <Route path="/about" component={About} />
+        <Route path="/inbox" component={Inbox} />
+      </Route>
+      </div>
+    </Router>
+  ), document.body)
+  ```
+
+  
+
+
+
+### 11.8 嵌套路由
+
+嵌套路由是写在父级路由内部的路由，要达到该路由一定会触发父级的路由，所以父级路由一定不能使用`exact`属性，不然无法触发该路由
+
+**注意：**该嵌套不是路径上的嵌套，而是实际意义上组件代码的嵌套，就和Vue的`router-view`一样
+
+```jsx
+//app.jsx
+import React from 'react'
+import './App.css'
+import { BrowserRouter as Router, Route } from 'react-router-dom'
+import App2 from './components/app'
+import Home from './components/home'
+
+function App() {
+  return (
+    <div className="App">
+      <Router>
+        <Route exact path="/" component={Home} />
+        <Route path="/app" component={App2} />
+      </Router>
+    </div>
+  )
+}
+
+export default App
+```
+
+```jsx
+// app2.jsx
+import React, { Component } from 'react'
+import { BrowserRouter as Router, Route } from 'react-router-dom'
+import News from './news'
+
+class App extends Component {
+  state = {
+    time: 0
+  }
+  componentDidMount() {
+    setTimeout(() => {
+      this.setState({
+        time: 1
+      })
+    }, 5000)
+  }
+  render() {
+    return (
+      <div>
+        APP组件
+        <Router>
+          <div>
+            <Route path="/app/news" component={News} />
+          </div>
+        </Router>
+      </div>
+    )
+  }
+}
+
+export default App
+```
+
+```jsx
+// news.jsx
+import React, { Component } from 'react'
+
+class News extends Component {
+  render() {
+    return <div>新闻组件</div>
+  }
+}
+
+export default News
+```
+
+
+
+### 11.9 路由跳转后的卸载状态
+
+在组件卸载后，我们如果在前一个页面使用了定时器等，定时器在组件卸载后一样会继续执行，如果里面有更新状态的代码就会报错，这样就会造成很多问题，所以推荐在这些组件中组件卸载的时候不要更新更新状态，这时我们只需要**将对应更新的函数赋值为另外的空函数**就可以了
+
+```jsx
+class ScrollingList extends React.Component {
+   state={
+            count:0
+      }
+    constructor(props) {
+        super(props);
+      }
+    componentDidMount(){、
+    	//如果两秒内跳转页面会报错
+        setTimeout({
+          this.setState({
+            count:1
+          })
+        },2000)
+    }
+    componentWillUnmount(){
+        //重新改变this.setState,让组件被销毁的时候不报错
+        this.setState=()=>{
+            return
+        }
+    }
+    render() {
+        return (
+            <div>{this.state.count}</div>
+        );
+    }
+}
+```
+
+
+
