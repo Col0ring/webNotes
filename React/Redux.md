@@ -1,4 +1,4 @@
-# Redux
+# 	Redux
 
 > 参考自阮一峰的[《Redux 入门教程》](http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_one_basic_usages.html)
 
@@ -360,6 +360,8 @@ const chatReducer = (state = defaultState, action = {}) => {
 
 这样一拆，Reducer 就易读易写多了。而且，这种拆分与 React 应用的结构相吻合：一个 React 根组件由很多子组件构成。**这就是说，子组件与子 Reducer 完全可以对应**
 
+### 4.1 combineReducers
+
 Redux 提供了一个`combineReducers`方法，用于 Reducer 的拆分。你只要定义各个子 Reducer 函数，然后用这个方法，将它们合成一个大的 Reducer
 
 ```js
@@ -420,6 +422,13 @@ import * as reducers from './reducers'
 // reducers包含了所有的action
 const reducer = combineReducers(reducers)
 ```
+
+**注意：**每个传入 combineReducers 的 reducer 都需满足以下规则：
+
+- 所有未匹配到的 action，必须把它接收到的第一个参数也就是那个 state 原封不动返回
+- 永远不能返回 undefined。当过早 return 时非常容易犯这个错误，为了避免错误扩散，遇到这种情况时 combineReducers 会抛异常。
+- 如果传入的 state 就是 undefined，一定要返回对应 reducer 的初始 state。根据上一条规则，初始 state 禁止使用 undefined。使用 ES6 的默认参数值语法来设置初始 state 很容易，但你也可以手动检查第一个参数是否为 undefined
+- 虽然 combineReducers 自动帮你检查 reducer 是否符合以上规则，但你也应该牢记，并尽量遵守
 
 
 
@@ -781,6 +790,8 @@ React-Redux是专门针对React做的一个Redux库，是React的插件，该插
 ### 8.1 组件分类
 
 React-Redux 将所有组件分成两大类：UI 组件（presentational component）和容器组件（container component）
+
+**注：**建议将UI组件专门建立一个`components`文件夹进行存放，容器组件建立一个`containers`文件夹进行存放
 
 #### 8.1.1 UI 组件
 
@@ -1193,5 +1204,136 @@ const Root = ({ store }) => (
     </Router>
   </Provider>
 );
+```
+
+
+
+## 9.调试Redux
+
+- 首先需要在Chrome安装Redux调试扩展程序`Redux Devtools`
+
+- 然后下载调试的工具依耐包
+
+  ```shell
+  npm i redux-devtools-extension -D
+  ```
+
+  ```js
+  import {createStore, applyMiddleware} from 'redux'
+  import {composeWithDevTools} from 'redux-devtools-extension'
+  import {reducers1} from './reducers'
+  import thunk from 'redux-thunk'
+  
+  const store = createStore(
+  	reducer1,
+      composeWithDevTools(applyMiddleware(thunk))
+  )
+  ```
+
+
+
+## 10.模块化
+
+一般使用Redux推荐使用Vuex规范的构建模式，将每一个模块进行分层管理，创建一个redux目录来专门装这些模块
+
+- **action-type.js**
+
+  ```js
+  // action-type.js
+  /*
+  	包含所有action的type名称常量
+  */
+  ```
+
+- **action.js**
+
+  ```js
+  // action.js
+  import {type1,type2} from './action-type.js'// action操作通常引用action-type
+  /*
+  	包含所有action  creator（action的工厂函数）
+  */
+  ```
+
+- **reducers.js**
+
+  ```js
+  // reducers.js
+  import {type1,type2} from './action-type.js'// reducers也通常引用action-type与action对应
+  import { combineReducers } from 'redux'
+  /*
+  	包含多个reducer函数（根据旧的state和action返回一个新的state）
+  */
+  // 如果要合并
+  export default combineReducers({
+  	reducers1,reducers2
+  })
+  // 该文件的内容通常会被引入到store.js中
+  ```
+
+- **store.js**
+
+  ```js
+  // store.js
+  /*
+  	redux最核心的管理对象
+  */
+  import {createStore, applyMiddleware} from 'redux'
+  import {composeWithDevTools} from 'redux-devtools-extension' // redux调试工具
+  import {reducers1} from './reducers'// 这个只是有一个reducers的情况，并且还没有合并reducers
+  /*
+  	如果有多个reducers建议使用combinReducers进行合并
+  	import reducers from './reducers'引入
+  */
+  import thunk from 'redux-thunk'
+  
+  export default createStore(
+  	reducer1,// reducers
+      composeWithDevTools(applyMiddleware(thunk))
+  )
+  ```
+
+**在实际中的应用**
+
+```jsx
+// index.js，入口文件
+import React from 'react'
+import ReactDOM from 'react-dom'
+import {Provider} from 'react-redux'
+import store from './redux/store'
+import App from './containers/App' //App组件变为了容器组件
+import * as serviceWorker from './serviceWorker'
+import './index.css'
+
+ReactDOM.render(<App />, document.getElementById('root'))
+
+// If you want your app to work offline and load faster, you can change
+// unregister() to register() below. Note this comes with some pitfalls.
+// Learn more about service workers: https://bit.ly/CRA-PWA
+serviceWorker.unregister()
+```
+
+```jsx
+// index.js，入口文件
+import React, {Component} from 'react'
+import PropTypes from 'prop-types'
+import {connect} from 'react-redux'
+import store from './redux/store'
+
+import {actions1,actions2} from '../../redux/actions'
+
+
+Class App extends Component {
+    static propTypes = {
+        data:PropTypes.array.isRequired, // 举个例子，data为一个数组
+        action1:PropTypes.func.isRequired,// 一般映射到的组件类的方法都与actions类的一致
+        action1:PropTypes.func.isRequired
+    }
+}
+
+export default connect(
+	state=>({data:state}),// state就是一个data的数组，如果使用了combineReducers使用state.data映射
+    {actions1,actions2}// 组件的属性与action的名称一致
+)(App) 
 ```
 

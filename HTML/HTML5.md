@@ -2686,7 +2686,8 @@ source.onmessage=function(e){
 		width=device-width 设备宽度
 		initial-scale=1.0  100px初始化的比例值
 		maximum-scale=1.0  最大的比例值
-		user-scalable=no   用户自定义缩放
+		user-scalable=no   用户自定义缩放，不允许缩放
+	加了这个meta标签，我们就可以认为让页面按照视口宽度进行显示，视口是多大内容就是按照比例变化，不加默认是	 按照PC端的980px添加的
 	-->
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Document</title>
@@ -2785,6 +2786,24 @@ source.onmessage=function(e){
     })
     
 })()
+```
+
+```css
+/* 假设将屏幕大小分成10份 */
+/*
+	使用flexible布局强制不要让font-size超过设计稿设置
+*/
+@media screen and (min-width:750px){
+    html{
+        font-size:75px !important;
+    }
+}
+body{
+    margin:0 auto;
+	min-width:320px;
+    width:10rem;
+    max-width:750px;
+}
 ```
 
 

@@ -2105,6 +2105,29 @@ transform:rotateX(90deg/180deg/270deg/360deg)(里面的角度分别对应了上�
 
 大到小的顺序写,这样写是为了后面写的到了合适的时候会覆盖前面的内容,如果写反了就会只有一种样式
 
+### 10.1 引入资源
+
+**媒体查询还可以根据不同的大小引入不同的资源文件**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" href="a.css" modia="screen and (min-width:320px)"/>
+        <link rel="stylesheet" href="b.css" modia="screen and (min-width:640px)"/>
+        <title>Document</title>
+    </head>
+    <body>
+        <div>
+            <!-- coding... -->
+        </div>
+    </body>
+</html>
+```
+
 
 
 ## 11.布局思路
