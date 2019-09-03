@@ -287,7 +287,7 @@ window.STATE_FROM_SERVE`就是整个应用的状态初始值，如果提供了�
 const createStore = (reducer) => {
     let state;
     let listeners = [];
-
+    
     const getState = () => state;
 
     const dispatch = (action) => {
@@ -297,14 +297,14 @@ const createStore = (reducer) => {
     };
 
     const subscribe = (listener) => {
-        listeners.push(listener);
-        // 监听返回过滤后的listener，此时这个函数应该已经结束不会再启用，listener已经存入了内存
+        listeners.push(listener);// 此函数调用一次后就无作用，listener已经存入了内存
+        // 监听返回重置listener的函数，此函数可以将之前的listener取消
         return () => {
             listeners = listeners.filter(l => l !== listener);
         }
     };
-
-    dispatch({});
+	// 第一次调用reducer得到初始状态并保存
+    dispatch({type:"@INIT-REDUX"});
 
     return { getState, dispatch, subscribe };
 };
@@ -954,6 +954,64 @@ const mapStateToProps = (state, ownProps) => {
 
 
 
+#### 8.2.3 实现原理
+
+**connect用于将传入的state与action分发给新的被包装过的容器组件中**
+
+```js
+import React, { Component } from 'react'
+import PropTypes from 'props-types'
+function connect(mapStateToProps, mapDispatchToProps) {
+  // 返回一个函数，接收一个组件
+  return WrapComponent => {
+    return class ConnectComponent extends Component {
+      // 声明获取context数据
+      static contextTypes = {
+        store: PropTypes.object.isRequired
+      }
+      constructor(props, context) {
+        super(props, context)
+        // 得到store
+        const store = context.store
+        // 包含一般属性的对象
+        const stateProps = mapStateToProps(store.getState())
+        //包含函数属性的对象
+        const dispatchProps = this.bindActionCreators(mapDispatchToProps)
+        //将所有一般属性都保存到state中
+        this.state = { ...stateProps }
+        //将所有函数属性的对象保存组件对象
+        this.dispatchProps = dispatchProps
+      }
+      // 根据mapDispatchToProps返回一个包含分发action的函数的对象
+      bindActionCreators = mapDispatchToProps => {
+        Object.keys(mapDispatchToProps).reduce((preDispatchProps, key) => {
+          // 添加一个包含dispatch语句的方法
+          preDispatchProps[key] = (...args) => {
+            this.context.store.dispatch(mapDispatchToProps[key](...args))
+          }
+          return preDispatchProps
+        }, {})
+      }
+      // 订阅监听
+      componentDidMount() {
+        const store = this.context.store
+        store.subscribe(() => {
+          //redux中产生了一个新的state
+          //更新当前状态
+          this.setState(mapStateToProps(store.getState()))
+        })
+      }
+
+      render() {
+        return <WrapComponent {...this.state} {...this.dispatchProps} />
+      }
+    }
+  }
+}
+```
+
+
+
 ### 8.3 Provider 组件
 
 `connect`方法生成容器组件以后，需要让容器组件拿到`state`对象，才能生成 UI 组件的参数。传统的解决方法是将`state`对象作为参数，传入容器组件。但是，这样做比较麻烦，尤其是容器组件可能在很深的层级，一级级将`state`传下去就很麻烦
@@ -985,24 +1043,26 @@ Provider在根组件外面包了一层，这样一来，App的所有子组件就
 **它的原理是`React`组件的[`context`](https://facebook.github.io/react/docs/context.html)属性**
 
 ```js
+import PropTypes from 'prop-types'
 // Provider源码
 class Provider extends Component {
+    static childContextTypes = {
+		store: PropTypes.object.isRequired
+    }
+    // 必须传store,传递给后代组件的上下文对象
     getChildContext() {
         return {
             store: this.props.store
         };
     }
     render() {
+        // 将所有子标签返回，自动渲染出来
         return this.props.children;
     }
 }
-
-Provider.childContextTypes = {
-    store: React.PropTypes.object
-}
 ```
 
-**`store`放在了上下文对象`context`上面。然后，子组件就可以从`context`拿到`store`**
+**`store`放在了上下文对象`context`上面。然后，子组件就可以从`context`拿到`store`（React官方的说法是如果不想要逐层传递参数，可以使用`context`，传入这个可以在所有的子组件使用，但是不推荐使用，既然能用redux，还是使用reudx这个已经封装好的库，滥用`context`会让整个应用的结构混乱）**
 
 ```js
 // 大致代码如下
@@ -1305,7 +1365,12 @@ import App from './containers/App' //App组件变为了容器组件
 import * as serviceWorker from './serviceWorker'
 import './index.css'
 
-ReactDOM.render(<App />, document.getElementById('root'))
+ReactDOM.render(
+    <Provider store={store}>
+        <App />
+    </Provider>,
+    document.getElementById('root')
+)
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
@@ -1314,12 +1379,10 @@ serviceWorker.unregister()
 ```
 
 ```jsx
-// index.js，入口文件
+// /containers/App.jsx
 import React, {Component} from 'react'
 import PropTypes from 'prop-types'
 import {connect} from 'react-redux'
-import store from './redux/store'
-
 import {actions1,actions2} from '../../redux/actions'
 
 

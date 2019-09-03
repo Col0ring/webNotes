@@ -281,3 +281,26 @@ module.exports = override(
 @tabs-pagination-zindex: 999;
 ```
 
+
+
+## 3.踩坑
+
+### 3.1 异步显示宫格
+
+在写聊天表情的宫格时，需要点击表情从下方加载出表情的宫格，但是每次点击只会加载一部分，经过查询必须要异步为window分发一个`resize`事件才能完整显示
+
+```js
+toggleShow = () => {
+    const isEmojisShow = !this.state.isEmojisShow
+    this.setState({
+        isEmojisShow
+    })
+    if (isEmojisShow) {
+        //异步派发resize事件，解决表情列表显示的bug
+        setTimeout(() => {
+            window.dispatchEvent(new Event('resize'))
+        }, 0)
+    }
+}
+```
+

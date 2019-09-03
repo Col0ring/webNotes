@@ -5760,7 +5760,7 @@ var p=Promise.all([p1,p2,p3]).then(function(data){
 var p1=new Promise(function(){});
 var p2=new Promise(function(){});
 var p3=new Promise(function(){});
-var p=Promise.all([p1,p2,p3]).then(function(data){
+var p=Promise.race([p1,p2,p3]).then(function(data){
 	console.log(data);
 },function(err){
     console.log(err);
@@ -5951,7 +5951,7 @@ var p=new Promise(function(success,rejected){
 
 ## 22.Generator
 
-**Generator函数是ES6提供的一种异步编程解决方案.,语法行为与传统的普通函数完全不同。**执行Generator函数会返回一个遍历器对象。也就是说,Generator函数还是一个遍历器对象生成函数。返回的遍历器对象，可以依次遍历Generator函数内部的每一个状态
+**Generator函数是ES6提供的一种异步编程解决方案，语法行为与传统的普通函数完全不同。**执行Generator函数会返回一个遍历器对象。也就是说,Generator函数还是一个遍历器对象生成函数。返回的遍历器对象，可以依次遍历Generator函数内部的每一个状态
 
 **Generator函数跟普通函数的区别**
 
@@ -6262,109 +6262,170 @@ for (let v of bar()){
 
 - Generator
 
-```js
-var fn = function (time) {
-  console.log("开始处理异步");
-  setTimeout(function () {
-    console.log(time);
-    console.log("异步处理完成");
-    iter.next();
-  }, time);
-
-};
-
-function* g(){
-  console.log("start");
-  yield fn(3000)
-  yield fn(500)
-  yield fn(1000)
-  console.log("end");
-}
-
-let iter = g();
-iter.next();
-```
+  ```js
+  var fn = function (time) {
+    console.log("开始处理异步");
+    setTimeout(function () {
+      console.log(time);
+      console.log("异步处理完成");
+      iter.next();
+    }, time);
+  
+  };
+  
+  function* g(){
+    console.log("start");
+    yield fn(3000)
+    yield fn(500)
+    yield fn(1000)
+    console.log("end");
+  }
+  
+  let iter = g();
+  iter.next();
+  ```
 
 - async
 
-```js
-var fn = function (time) {
-  return new Promise(function (resolve, reject) {
-    console.log("开始处理异步");
-    setTimeout(function () {
-      resolve();
-      console.log(time);
-      console.log("异步处理完成");
-    }, time);
-  })
-};
-
-var start = async function () {
-  // 在这里使用起来就像同步代码那样直观
-  console.log('start');
-  await fn(3000);
-  await fn(500);
-  await fn(1000);
-  console.log('end');
-};
-
-start();
-```
+  ```js
+  var fn = function (time) {
+    return new Promise(function (resolve, reject) {
+      console.log("开始处理异步");
+      setTimeout(function () {
+        resolve();
+        console.log(time);
+        console.log("异步处理完成");
+      }, time);
+    })
+  };
+  
+  var start = async function () {
+    // 在这里使用起来就像同步代码那样直观
+    console.log('start');
+    await fn(3000);
+    await fn(500);
+    await fn(1000);
+    console.log('end');
+  };
+  
+  start();
+  ```
 
 
 
 **注意:**
 
-**如果await后面的异步操作出错，那么等同于async函数返回的Promise对象直接失败,并且会将错误对象作为参数传递给then()方法的第二个函数或者catch()方法回调函数中**
+- **如果await后面的异步操作出错，那么等同于async函数返回的Promise对象直接失败,并且会将错误对象作为参数传递给then()方法的第二个函数或者catch()方法回调函数中**
 
-```js
-async function f() {
-  await new Promise(function (success, rejected) {
-    throw new Error('error');
-  });
-}
-
-f().then(function(value){
-    console.log(value)
-}).catch(function(err){
-    console.log(err)//Error:error
-});
-```
-
-```js
-//用try...catch来捕捉
+  ```js
+  /* 这种方法是只用运行函数后在函数层面进行捕捉错误 */
   async function f() {
+    await new Promise(function (success, rejected) {
+      throw new Error('error');
+    });
+  }
+  
+  f().then(function(value){
+      console.log(value)
+  }).catch(function(err){
+      console.log(err)//Error:error
+  });
+  ```
+
+  ```js
+  //用try...catch来捕捉
+    async function f() {
+        try {
+            await new Promise(function(success, rejected) {
+                throw new Error("error");
+            });
+        } catch (err) {
+            console.log(err);
+        }
+        return await "hello world";
+    }
+  f().then(function(data) {
+      console.log(data);
+  });
+  ```
+
+  ```js
+  //如果有多个await命令，可以统一放在try...catch结构中。
+  async function main() {
+    try {
+      var val1 = await firstStep();
+      var val2 = await secondStep(val1);
+      var val3 = await thirdStep(val1, val2);
+  
+      console.log('Final: ', val3);
+    }
+    catch (err) {
+      console.error(err);
+    }
+  }
+  ```
+
+- **如果要在async函数中实现异步操作（不是一直await最后变成了同步操作），需要配合Promise.all()配合使用**
+
+  ```js
+  var fn = function (time) {
+    return new Promise(function (resolve, reject) {
+      setTimeout(function () {
+        resolve(time);
+      }, time);
+    })
+  };
+  
+  var start = async function () {
+    console.log('start');
+    const [res,res2,res3] = await Promise.all([fn(3000),fn(500),fn(1000)]) //传入一个数组最后依次返回 
+    console.log(res,res2,res3) // 3000 500 1000
+    console.log('end');
+    return [res,res2,res3]
+  };
+  
+  // async函数默认最外层返回值嵌套的是一个Pmomise对象，直接return后的值会传入then后成功的函数中
+  start().then(res=>{
+      console.log(res) // 3000 500 1000
+  }).catch(err=>{
+      console.log(err)
+  })
+  ```
+
+  **如果要使用循环的async的异步操作，可以直接传递一个数组给Promise.all()**
+
+  ```js
+  import {getOneInfo} from '../api/getInfo'
+  const items = [{id:0},{id:1}.{id:2}]
+  async fetchAll(items) {
       try {
-          await new Promise(function(success, rejected) {
+          let arr = []
+          items.forEach(val => {
+              arr.push(getOneInfo(val.id))
+          })
+          const results = await Promise.all(arr)
+          //判断是否全部获取成功
+          if (results.every(val => val.status === 200)) {
+              // 这步会改变itmes里面元素的值，因为是引用类型
+              items.forEach((value, index) => {
+                  value.name = results[index].data.name //name在这里假设就是索引值
+              })
+              return items
+          } else {
               throw new Error("error");
-          });
+          }
       } catch (err) {
-          console.log(err);
+          console.log(err)
       }
-      return await "hello world";
   }
-f().then(function(data) {
-    console.log(data);
-});
-```
-
-```js
-//如果有多个await命令，可以统一放在try...catch结构中。
-async function main() {
-  try {
-    var val1 = await firstStep();
-    var val2 = await secondStep(val1);
-    var val3 = await thirdStep(val1, val2);
-
-    console.log('Final: ', val3);
+  fetchAll(items).then(res=>{
+      console.log(res) // [{id:0,name:0},{id:1,name:1},{id:2,name:2}]
+  }).catch(err){
+      console.log(err) // error
   }
-  catch (err) {
-    console.error(err);
-  }
-}
-```
+  ```
 
-
+  
 
 ## 24.Module
 
