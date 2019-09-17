@@ -741,6 +741,28 @@ ReactDOM.render(
 
 
 
+#### 3.2.5 PureComponent与Component
+
+**Compoent存在的问题**
+
+- 父组件重新render()，当前组件也会重新执行render()，即使没有任何变化
+- 当前组件setState()，重新执行render()，即使state没有任何变化
+
+**解决办法**
+
+- 重写shouldComponentUpdate()，判断如果数据有变化返回true，否则返回false
+- 使用PureComponent代替Component
+
+
+
+**PureComponent原理**
+
+- 重写实现shouldComponentUpdate()
+- 对组件的新/旧state和props中的数据数据进行**浅比较，**如果都没有变化，返回false，否则返回true
+- 一旦shouldComponentUpdate()返回false不再执行用于更新的render()
+
+
+
 ### 3.3 组件传值
 
 #### 3.3.1 父组件向子组件传值
@@ -1514,7 +1536,7 @@ const content = posts.map((post) =>
 **参数：**
 
 - **nextState**，将要设置的新状态，该状态会和当前的**state**合并
-- **callback**，可选参数，回调函数。该函数会在**setState**设置成功，且组件重新渲染后调用
+- **callback**，可选参数，回调函数。该函数会在**setState**设置成功，且组件重新渲染后调用，传入的参数为改变后的state的值
 
 **注意：**
 
@@ -1554,7 +1576,24 @@ ReactDOM.render(
   });
   ```
 
-- **State 的更新可能是异步的，**setState()并不会立即改变this.state，而是创建一个即将处理的state。setState()并不一定是同步的，为了提升性能React会批量执行state和DOM渲染，因为 this.props 和 this.state 可能是异步更新的，所以不应该用它们当前的值去计算下一个 state 的值
+- **State 的更新可能是异步的，**setState()并不会立即改变this.state，而是创建一个即将处理的state。setState()并不一定是同步的，为了提升性能React会批量执行state和DOM渲染
+
+  **执行setState()的位置**
+  
+  + 在react控制的回调函数中：生命周期钩子、react时间监听回调
+  + 在非react控制的异步回调函数中：定时器回调、原生事件监听回调、Promise回调等
+  
+  **异步与同步**
+
+  + 在react相关回调函数中为异步
+
+  + 在其他异步回调中为同步，（注意异步函数中的宏队列与微队列，宏队列依次执行，微队列只用记住Promise会在每次的宏队列的函数执行完才会执行，每次执行宏队列前都会确保微队列是空的）
+  
+    **注意：**在异步更新时使用this.setState()**对对象形式的值进行设置时会先将要改变的值根据现在的this.state中的值进行设置后再改变的**，也就是说如果是使用对象形式的异步操作，要改变的值其实找就已经写好了，只是延迟更新，**而函数形式是要等到真正要更新界面的时候才会去那道this.state内部的值从而更新界面**
+    
+    ![1567610943133](C:\Users\asus\AppData\Roaming\Typora\typora-user-images\1567610943133.png)
+  
+  因为 this.props 和 this.state 可能是异步更新的，所以不应该用它们当前的值去计算下一个 state 的值
 
   ```jsx
   // Wrong
@@ -1562,9 +1601,9 @@ ReactDOM.render(
     counter: this.state.counter + this.props.increment,
   });
   ```
-
-  要修复它，请使用第二种形式的 setState() 来接受一个函数而不是一个对象。 该函数将接收先前的状态作为第一个参数，将此次更新被应用时的props做为第二个参数
-
+  
+  要修复它，请**使用第二种形式的 setState() 来接受一个函数而不是一个对象。** 该函数将接收先前的状态作为第一个参数，将此次更新被应用时的props做为第二个参数
+  
   ```jsx
   // Correct
   //第一个参数为原来的状态值
@@ -1572,8 +1611,13 @@ ReactDOM.render(
     counter: prevState.counter + props.increment
   }));
   ```
-
   
+  **总结：**
+  
+  - 如果新状态不依赖于原状态，可以使用对象方式
+  - 如果新这状态依赖于原状态，需要使用函数方式
+
+
 
 ### 7.2 replaceState
 
