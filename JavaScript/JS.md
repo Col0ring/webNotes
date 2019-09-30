@@ -319,7 +319,7 @@ console.log(typeof sym);//symbol
 
 
 
-##### 2.Symbo()的参数
+##### 2.Symbol()的参数
 
 - **字符串作参数**
 
@@ -5550,7 +5550,7 @@ Proxy {a: 4, b: 2, c: 3}
   var obj = { a: 1, b: 2, c: 3 };
   var p = new Proxy(obj, {
       get:function(target, key, receiver) {
-          return “hello"
+          return "hello"
       },
       set:function(target,key,value,receiver){
   		Reflect.set(target, key, value, receiver);
@@ -5573,7 +5573,6 @@ Proxy {a: 4, b: 2, c: 3}
   conosole.log(p.a);//4
   ```
 
-  
 
 **注:**Proxy实例还可以设置很多方法,在这里值将set()与get()的用法
 
@@ -5640,6 +5639,17 @@ Promise对象是对于JS中的异步操作的结果方案,可以说Promise是一
 
 Promise可以作为一个构造函数对象,传入的两个参数都是函数,第一个函数是代表成功,第二个代表失败,每个函数调用后都会在then()中找到自己对于的函数来执行
 
+**then中函数的返回值**
+
+当一个`Promise`完成（fulfilled）或者失败（rejected），返回函数将被异步调用（由当前的线程循环来调度完成）。具体的返回值依据以下规则返回：
+
+- 如果then中的回调函数返回一个值，那么then返回的Promise将会成为接受状态，并且将返回的值作为接受状态的回调函数的参数值。
+- 如果then中的回调函数没有返回值，那么then返回的Promise将会成为接受状态，并且该接受状态的回调函数的参数值为 undefined。
+- 如果then中的回调函数抛出一个错误，那么then返回的Promise将会成为拒绝状态，并且将抛出的错误作为拒绝状态的回调函数的参数值。
+- 如果then中的回调函数返回一个已经是接受状态的Promise，那么then返回的Promise也会成为接受状态，并且将那个Promise的接受状态的回调函数的参数值作为该被返回的Promise的接受状态回调函数的参数值。
+- 如果then中的回调函数返回一个已经是拒绝状态的Promise，那么then返回的Promise也会成为拒绝状态，并且将那个Promise的拒绝状态的回调函数的参数值作为该被返回的Promise的拒绝状态回调函数的参数值。
+- 如果then中的回调函数返回一个未定状态（pending）的Promise，那么then返回Promise的状态也是未定的，并且它的终态与那个Promise的终态相同；同时，它变为终态时调用的回调函数参数与那个Promise变为终态时的回调函数的参数是相同的。
+
 ```js
 var p=new Promise(function(success,rejected){
     setTimeout(function(){
@@ -5670,7 +5680,7 @@ var p=new Promise(function(success,rejected){
     console.log(data);//456
     return 789;
     /*
-    如果这里不写返回值,默认会返回undefined给下面then()中成功时的函数,注意的是这样写无论写什么普通的	数据类型都是成功的,都是为下面的then()函数传递了成功时的Promise
+    如果这里不写返回值,默认会返回undefined给下面then()中成功时的函数,注意的是这样写无论写什么普通的数据类型都是成功的,都是为下面的then()函数传递了成功时的Promise
     */
 }).then(function(data){
     console.log(data);//789
@@ -5700,7 +5710,7 @@ var p=new Promise(function(success,rejected){
 },
     function(err){
     console.log(err);//error
-	//失败就不会执行后面的then()了
+	//失败后不写返回值也会默认返回undefined被下面的then的成功函数接住
 }).then(
     function(data){
     console.log(data);//789
@@ -5720,7 +5730,15 @@ var p=new Promise(function(success,rejected){
 */
 ```
 
+**注意：**
 
+- Promise 对象的错误具有`冒泡`性质，会一直向后传递，直到被捕获为止。也就是说，错误总是会被下一个`catch`语句捕获
+
+- `Promise`的rejected必须要有catch或者后面有then的第二个参数来接收，即使什么都不做，但是必须要接收到，不然会报错
+
+- 如果想要在中途断掉promise链，可以返回一个`new Promise(()=>{})`不定义任何状态，这样promise链会一直处于暂停状态
+
+  
 
 ### 20.3 静态方法
 

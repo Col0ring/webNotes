@@ -291,6 +291,8 @@ cnpm install -g typescript
   create(undefined); // 报错
   ```
   
+  **注：**一般对象类型不会这样申明，而是直接写让TypeScript做自动类型判断或者更加精确的指示，如接口等，在后面都有介绍到
+  
 - **函数类型**
 
   函数类型有多种声明方式，最简单直观的是用`Function`表示函数类型，在写函数表达式的时候可以直接写声明是一个函数类型（不过一般我们不这样做，要么是不在表达式左边直接写`Function`而是靠类型推断，要么是直接将一个函数的类型写全），具体介绍在后面函数中单独介绍
@@ -802,7 +804,7 @@ function createZoo(): Animal[] {//在这里面Animal就是被作为最佳通用�
     */
     ```
     
-- TypeScript中的函数即使没有返回值也应该显示声明返回值为`void`类型
+- TypeScript中的函数即使没有返回值也应该显示声明返回值为`void`类型，否则为`any`类型
 
     ```typescript
     const a = function():void = {
@@ -1151,7 +1153,7 @@ s.run(); //李四子类方法
   animal = employee; // 错误: Animal 与 Employee 不兼容,name的私有属性不兼容
   ```
 
-- **readonly:**只读类型,可以使用 `readonly`关键字将属性设置为只读的, 只读属性必须在声明时或构造函数里被初始化
+- **readonly:**只读类型,可以使用 `readonly`关键字将属性设置为只读的, 只读属性必须在声明时或构造函数里被初始化。同时`readonly`修辞符是可以和其他三个修辞符一起存在的，注意`readonly`必须要放在第二个位置，只写`readonly`默认在前面加了`public`
 
   ```typescript
   class Octopus {
@@ -1268,7 +1270,7 @@ s.run();//李四,因为run方法是Person内部的,可以使用私有属性
 
 **参数属性**
 
-参数属性通过给构造函数参数前面添加一个访问限定符来声明。 使用 `private`限定一个参数属性会声明并初始化一个私有成员,对于 `public`和 `protected`来说也是一样
+参数属性通过给构造函数参数前面添加一个访问限定符来声明。 使用 `private`限定一个参数属性会声明并初始化一个私有成员,对于 `public`和 `protected`和``readonly`来说也是一样
 
 **总的来说,这种写法是上面先声明又赋值属性的简便写法,可以直接通过这种写法改写上方先先在前面声明属性的写法,构造函数中也可以什么都不写**
 
@@ -1490,15 +1492,13 @@ TypeScript中的接口类似于JAVA,同时还增加了更灵活的接口类型,�
     console.log(name.firstName, name.secondName);//张 undefined
   }
   
+  printName({
+        firstName:"张"
+  })
   ```
 
-printName({
-      firstName:"张"
-})
-  ```
-  
   **案例:**利用TS封装ajax请求
-  
+
   ```typescript
   interface Config {
     type: string;
@@ -1541,6 +1541,7 @@ printName({
 //加密的函数类型接口
 interface encrypt{
     (key:string,value:string):string
+    a:string
 }
 
 let md5:encrypt=function(key:string,value:string):string{
@@ -1672,7 +1673,7 @@ let dog: Dog = new Dog("狗");
 dog.eat("狗粮");
 
 class Cat implements Animal {
-  private age: number = 2;//也可以有其他的属性,这点和抽象类不同
+  private age: number = 2;//也可以有其他的属性,这点和抽象类相同
   constructor(public name: string) {}
   eat() {
    /*
@@ -1693,7 +1694,7 @@ cat.showAge();//2
 
 
 
-#### 6.4.2 构造器类接口
+#### 6.4.2 构造器与静态类接口
 
 **实例类接口类型主要是对于类返回的实例进行限制，而构造器类接口就是对类使用`new`时来对构造器函数进行限制**
 
@@ -1704,8 +1705,9 @@ interface AnimalBehavior {
 // 限定一个类有一个构造器接收name与age同时返回的实例对象符合AnimalBehavior接口
 interface Animal {
   new (name: string, age: number): AnimalBehavior
+  a:string // a就是一个静态的属性，也就是函数上的属性
 }
-
+// 这里的ctor必须有constructor方法并且返回一个AnimalBehavior实例且还有一个静态的a属性
 function createAnimal(ctor: Animal, name: string, age: number): AnimalBehavior {
   // 这边的return其实已经是由最后返回值得AnimalBehavior来进行限制的，new所做的工作已经结束了
   return new ctor(name, age)
@@ -1713,6 +1715,7 @@ function createAnimal(ctor: Animal, name: string, age: number): AnimalBehavior {
 
 class Dog implements AnimalBehavior {
   constructor(name: string, age: number) {}
+  static a = "A" // 必须要有这个静态的属性，否则下面的createAnimal函数会报错
   eat(str: string) {
     console.log('eat ' + str)
   }
