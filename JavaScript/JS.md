@@ -3527,6 +3527,33 @@ function extend(obj,deep){//因为不传是undefined转布尔值为false
 
 
 
+#### 9.11.3 获取子类的父类
+
+使用`Object.getPrototypeOf()`可以获取子类的继承类
+
+```js
+function Person(name, age, gender) {
+    	this.name = name;
+       	this.age = age;
+        this.gender = gender;
+}
+Person.prototype.sayHello=function(){
+    alert("hello");
+}
+Person.prototype.name="孙悟空";
+
+function Student(name,age,gender,grade){//在这里因为是设置了name属性,如果没有设置所有通过
+  		this.name = name;				//Student类创建的对象的name都是孙悟空
+   	 	this.age = age;
+    	this.gender = gender;
+    	this.grade.grade
+}
+Student.prototype=new Person();//虽然这样Student类能继承Person类的sayHello方法,但是需要再设置			
+console.log(Object.getPrototypeOf(Student) == Person)// true
+```
+
+
+
 ### 9.12 call,apply与bind方法
 
 **这三个方法都是函数对象的方法，需要通过函数对象来使用**
@@ -4945,6 +4972,18 @@ class Person{
         alert("hello"+this.name);
     }//其实就是ES6中函数的简写,但是必须用这种简写形式创建方法
 }
+// 表达式
+const Person = class{
+      constructor(name,age,gender){
+        this.name=name;
+		this.age=age;
+		this.gender=gender;
+    }
+    
+    sayName(){
+        alert("hello"+this.name);
+    }
+}
 ```
 
 **注意:**
@@ -5129,7 +5168,37 @@ student.sayName();
   */
   ```
 
-  
+
+
+
+### 15.5 new
+
+`new`关键字除了能够作为创建实例对象的关键字外，**在ES6中还可以在类的内部使用`new.target`来获取到当前实例到的类**
+
+```js
+class Parent {
+    constructor () {
+        // 实例的时候打印出Parent类本身
+        console.log(new.target)
+    }
+}
+```
+
+如果是子类继承的父类，在实例的时候不会打印父类而是子类，正如概念，会获取到当前实例的类
+
+```js
+class Parent {
+    constructor () {
+        // 打印Child类
+        console.log(new.target)
+    }
+}
+class Child extends Parent{
+}
+const c = new Child()
+```
+
+
 
 ## 16.Set
 
@@ -6615,6 +6684,21 @@ pero.son.lastName = "export";
 
 
 
+#### 24.2.1 动态import
+
+在新的ES提案中添加了import函数的动态导入支持，同node的require一样使用`import()`函数就能动态的导出要导出的文件
+
+```js
+const status = 1
+if(status){
+    import('./a')
+}else{
+    import('./b')
+}
+```
+
+
+
 ### 24.3 export default
 
 **使用import命令的时候,需要知道所要加载的变量名或函数名,否则无法加载。为了不用阅读文档就能加载模块,需要用export default命令,为模块指定默认输出**
@@ -6642,6 +6726,8 @@ export default foo;
 有名函数的函数名在模块外部是无效的,加载的时候,视同匿名函数加载
 */
 ```
+
+**注：**　直接//export testdata;//err 这种方式是会报错的，因为不能直接导出变量，需要用一个接口来继承变量然后导出，比如 `export var firstName = 'Michael'`，其中`firstname`就是接口
 
 - **导入**
 
