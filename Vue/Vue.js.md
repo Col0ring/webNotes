@@ -501,6 +501,40 @@ v-if如果想只写一个而同时切换多个元素,可以在最外成包裹一
 
 
 
+**自定义v-model**
+
+一个组件上的 `v-model` 默认会利用名为 `value` 的 prop 和名为 `input` 的事件，但是像单选框、复选框等类型的输入控件可能会将 `value` 特性用于不同的目的。`model` 选项可以用来避免这样的冲突：
+
+```js
+Vue.component('base-checkbox', {
+  model: {
+    prop: 'checked',
+    event: 'change'
+  },
+  props: {
+    checked: Boolean
+  },
+  template: `
+    <input
+      type="checkbox"
+      v-bind:checked="checked"
+      v-on:change="$emit('change', $event.target.checked)"
+    >
+  `
+})
+```
+
+现在在这个组件上使用 `v-model` 的时候：
+
+```
+<base-checkbox v-model="lovingVue"></base-checkbox>
+```
+
+这里的 `lovingVue` 的值将会传入这个名为 `checked` 的 prop。同时当 `<base-checkbox>` 触发一个 `change` 事件并附带一个新的值的时候，这个 `lovingVue` 的属性将会被更新。
+
+**注意：**仍然需要在组件的 `props` 选项里声明 `checked` 这个 prop
+
+
 
 ### 3.10 v-pre
 
@@ -1550,6 +1584,12 @@ var ComponentB = {
 
 
 
+#### 10.2.4 函数式组件
+
+[函数式组件](https://cn.vuejs.org/v2/guide/render-function.html#%E5%87%BD%E6%95%B0%E5%BC%8F%E7%BB%84%E4%BB%B6)
+
+
+
 ### 10.3 组件切换
 
 #### 10.3.1 通过v-if切换组件
@@ -1665,6 +1705,10 @@ var ComponentB = {
 <blog-post title="Why Vue is so fun"></blog-post>
 <script>
 Vue.component('blog-post', {
+  inheritAttrs:flase,
+/*
+注意如果传入的属性名与标签本身的原生属性重复，如title，Vue会默认也将其渲染为Attr，不过对项目没有实际影响，我们可以将inheritAttrs关闭来不让原生属性显示
+*/
   props: ['title'],
   template: '<h3>{{ title }}</h3>'
 })
@@ -2474,7 +2518,14 @@ const router = new VueRouter({
     </script>
   ```
 
-  
+
+**注：**
+
+- watch可以直接用"a.b"这样的属性单独监听a下面的b属性
+- watch可以写deep来直接进行一个对象或者数组的深度监听
+- watch可以写immediate，一进入页面就执行一次watch操作
+
+
 
 ### 12.2 computed
 

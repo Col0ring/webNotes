@@ -105,6 +105,17 @@ cnpm install -g typescript
   a=ro as number[];//正确,不能通过上面的方法复制,但是可以通过类型断言的方式,类型断言见下面
   ```
 
+  **注：**TypeScript 3.4引入了一种新语法，该语法用于对数组类型`ReadonlyArray`使用新的`readonly`修饰符
+
+  ```typescript
+  function foo(arr: readonly string[]) {
+      arr.slice();        // okay
+      arr.push("hello!"); // error!
+  }
+  ```
+
+  
+
 - **元组类型(tuple)**
 
   元组类型属于数组的一种,上面一种数组里面只能有一种类型,否则会报错,而元组类型内部可以有多种类型
@@ -114,6 +125,15 @@ cnpm install -g typescript
   let arr:[number,string]=[123,"string"];//注意如果类型不对应也会报错
   arr[2]=456;//报错
   //因为元组类型在声明时是一一对应的,只能有2个成员
+  ```
+
+  **注意：**与数组一样，元祖也可以使用`readonly`修辞了，但是，尽管出现了`readonly`类型修饰符，但类型修饰符只能用于数组类型和元组类型的语法
+
+  ```typescript
+  let err1: readonly Set<number>; // error!
+  let err2: readonly Array<boolean>; // error!
+  
+  let okay: readonly boolean[]; // works fine
   ```
 
 - **枚举类型(enum)**
@@ -1330,7 +1350,7 @@ let originalProps = unproxify(proxyProps);
 type ReadonlyAndPartial<T> = {
   +readonly [P in keyof T]+?: T[P]
 }
-type RemoveReadonlyAndPartial<T> = {
+type WritableAndPartial<T> = {
   -readonly [P in keyof T]-?: T[P]
 }
 ```
@@ -1438,7 +1458,7 @@ type T23 = InstanceType<string>;  // Error
 type T24 = InstanceType<Function>;  // Error
 ```
 
-**注意：**`Exclude`类型是建议的`Diff`类型的一种实现。使用`Exclude`这个名字是为了避免破坏已经定义了`Diff`的代码，并且感觉这个名字能更好地表达类型的语义。没有增加`Omit<T, K>`类型，因为它可以很容易的用`Pick<T, Exclude<keyof T, K>>`来表示(获取T中K没有的类型)
+**注意：**`Exclude`类型是建议的`Diff`类型的一种实现。使用`Exclude`这个名字是为了避免破坏已经定义了`Diff`的代码，并且感觉这个名字能更好地表达类型的语义。没有增加`Omit<T, K>`类型，因为它可以很容易的用`Pick<T, Exclude<keyof T, K>>`来表示(删除T中的K有的属性)，**但要注意TypeScript中3.5中已经加入了`Omit<T, K>`类型**
 
 
 
@@ -1464,6 +1484,56 @@ type T24 = InstanceType<Function>;  // Error
   ```
 
 **注意:**两种形式是等价的,但是当在TypeScript里使用JSX时,只有`as`语法断言是被允许的
+
+#### 3.3.1 const断言
+
+TypeScript 3.4引入了一种用于文字值的新构造，称为*const*断言。它的语法是类型断言，`const`代替类型名（例如`123 as const`）。当我们使用`const`断言构造新的文字表达式时，我们可以向语言发出信号：
+
+- 该表达式中的任何文字类型都不应扩展（例如，不得从`"hello"`到`string`）
+- 对象文字获取`readonly`属性
+- 数组文字变成`readonly`元组
+
+```ts
+// Type '"hello"'
+let x = "hello" as const;
+
+// Type 'readonly [10, 20]'
+let y = [10, 20] as const;
+
+// Type '{ readonly text: "hello" }'
+let z = { text: "hello" } as const;
+```
+
+**注意：**
+
+- `const`断言只能立即应用于简单的文字表达式
+
+    ```ts
+    // Error! A 'const' assertion can only be applied to a
+    // to a string, number, boolean, array, or object literal.
+    let a = (Math.random() < 0.5 ? 0 : 1) as const;
+
+    // Works!
+    let b = Math.random() < 0.5 ?
+        0 as const :
+        1 as const;
+    ```
+
+- `const`上下文不会立即将表达式转换为完全不可变的
+
+    ```ts
+    let arr = [1, 2, 3, 4];
+
+    let foo = {
+        name: "foo",
+        contents: arr,
+    } as const;
+
+    foo.name = "bar";   // error!
+    foo.contents = [];  // error!
+
+    foo.contents.push(5); // ...works!
+    ```
 
 
 
@@ -1635,13 +1705,13 @@ info = info3 // 报错，递归建材到info属性对象没有age属性
       funcY = funcX // funcX虽然有两个额外参数，但它们都是可选的，所以不会报错
       ```
   
-  - **参数双向协变兼容：**在以前的版本默认是兼容的，但是可以手动进行关闭，现在的版本默认就是不能兼容的
+  - **参数双向协变兼容：**默认是兼容的，可以开启严格模式使其不兼容参数双向协变
   
       ```typescript
       let funcX = (num: string | number) => 0
       let funcY = (num: number) => 0
       
-      // 在以前的版本默认两者都不会报错，但是现在版本第二个赋值会报错，因为在使用时默认是使用的原来创建函数的类型，funcY只能传入number类型，而funcX是可以接受string和number类型的
+      // 默认是兼容的，可以开启严格模式使其不兼容参数双向协变，因为在使用时默认是使用的原来创建函数的类型，funcY只能传入number类型，而funcX是可以接受string和number类型的
       funcY = funcX
       funcX = funcY
       ```

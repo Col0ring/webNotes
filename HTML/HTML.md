@@ -2,15 +2,15 @@
 
 ## 1.meta的用法和结构
 
-```CSS
-//<meta>标记在<head>部分
-<meta charset="" http-equiv="" name="" content=""/>//这样是一些字符写在一起
-<meta charser="UTF-8"/>//定义字符编码集
-<meta name="keywords" content=""/>//为搜索引擎关键字
-<meta name="description" content="  "/> //定义对于网页的基本描述 
-<meta name="revised" content="  "/>//定义网页的最新版本
+```html
+<!--<meta>标记在<head>部分-->
+<meta charset="" http-equiv="" name="" content=""/><!-- 这样是一些字符写在一起 -->
+<meta charser="UTF-8"/><!--定义字符编码集-->
+<meta name="keywords" content=""/><!--为搜索引擎关键字-->
+<meta name="description" content="  "/> <!--定义对于网页的基本描述 -->
+<meta name="revised" content="  "/><!--定义网页的最新版本-->
 <meta http-equiv="refresh" content="5（注释，秒）"[url="资源路径"]/>
-//不写url表示每隔5秒钟刷新一次页面否者跳到资源网址
+<!--不写url表示每隔5秒钟刷新一次页面否者跳到资源网址-->
 ```
 
 
@@ -251,8 +251,8 @@ behavior=""设置滚动类型slide设置滚到边界就不滚动了alternate让�
 <!--
 	iframe标签能在原本页面中再内嵌入一个页面,这个标签的显示模式是inline-block,可以横排显示
 	src中写要嵌入页面的域名
-	frameborder属性就是这个标签的边框,有两个值，分别为0和1,0就是没有边框,而1是有边框,基本上都是设置	 为0,同时这个边框和边框线border是不冲突的,可以同时设置
-	scrolling是控制这个标签周围是否出现滚动条,有三个值yes,no和auto,默认是yes,一般都是设置no来和页	面契合
+	frameborder属性就是这个标签的边框,有两个值，分别为0和1,0就是没有边框,而1是有边框,基本上都是设置为0,同时这个边框和边框线border是不冲突的,可以同时设置
+	scrolling是控制这个标签周围是否出现滚动条,有三个值yes,no和auto,默认是yes,一般都是设置no来和页面契合
 	注意:这个标签因为是在一个页面中再次嵌入多个页面,所以加载速度会很慢,还有很多安全性问题,尽量减少使用
 -->
 ```
@@ -264,7 +264,7 @@ behavior=""设置滚动类型slide设置滚到边界就不滚动了alternate让�
 你的浏览器不支持,请使用高版本浏览器
 </iframe>
 <!--
-	通过a标签的target绑定iframe标签的name值让点击a标签的时候不是自己网页发生跳转而是iframe中的页面		发生跳转,从百度跳转到天猫
+	通过a标签的target绑定iframe标签的name值让点击a标签的时候不是自己网页发生跳转而是iframe中的页面发生跳转,从百度跳转到天猫
 -->
 ```
 
@@ -337,8 +337,8 @@ table{
 }
 /*
 	在不设置属性border="1"的时候通过上面设置css样式来让表格有边框
-	border-spacing属性时边框直接的距离,浏览器默认会为table旁加上这个属性并且有值,这个时候就会看见每	  个表格的边框都时分离并且有一段距离的,而把这个属性设置为0时就会让距离为0,但是会出现边框合并变粗的问	 题
-	border-collapse属性决定是否将表格边框合并默认的值时spareate分开,当使用上面的collapse属性时则	  会合并表格边框,而且用了这个属性之后border-spacing属性的距离会失效,因为边框已经合并了就没有边框距	  离可言了
+	border-spacing属性时边框直接的距离,浏览器默认会为table旁加上这个属性并且有值,这个时候就会看见每个表格的边框都时分离并且有一段距离的,而把这个属性设置为0时就会让距离为0,但是会出现边框合并变粗的问题
+	border-collapse属性决定是否将表格边框合并默认的值时spareate分开,当使用上面的collapse属性时则会合并表格边框,而且用了这个属性之后border-spacing属性的距离会失效,因为边框已经合并了就没有边框距离可言了
 */
 ```
 
