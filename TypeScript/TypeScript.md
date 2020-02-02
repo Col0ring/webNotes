@@ -4197,8 +4197,6 @@ let sq = new polygons.Square(); // Same as "new Shapes.Polygons.Square()"
 
 ## 10.TypeScript中的装饰器
 
-> **此内容是面向未来的，可以跳过**
-
 **装饰器是一种特殊类型的声明,它能够被附加到类声明,方法,属性或参数上,可以修改类的行为**,通俗来讲装饰器就是一个方法,可以注入到类、方法、属性参数上来扩展类、属性、方法、参数的功能
 
 **装饰器已经是ES7的标准特性之一**
@@ -4502,6 +4500,11 @@ console.log(myObject.a) // 2
 - get：返回属性值的函数。如果为 **undefined** 则直接返回描述符中定义的 **value** 值
 
 - set：属性的赋值函数。如果为 **undefined** 则直接将赋值运算符右侧的值保存为属性值
+
+  **注：**
+
+  + 一旦同时使用了`get`和`set`，需要一个中间变量存储真正的值。
+  + `set`和`writable:false`是不能共存的。
 
 - configurable：如果为 **true**，则表示该属性可以重新使用（`Object.defineProperty(...)` ）定义描述符，或者从属性的宿主删除。缺省为 `true`
 

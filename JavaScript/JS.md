@@ -1099,7 +1099,7 @@ console.log(obj)//这里obj是一个空的对象,之间打印这个对象会返�
 
     - `enumerable`
 
-      描述属性是否可被枚举,会出现在for in 或者 Object.keys()的遍历中 ,**默认为 false**
+      描述属性是否可被枚举,会出现在`for in`者 `Object.keys()`的遍历中 ,**默认为 false**
 
     - `value`
 
@@ -2222,7 +2222,7 @@ var str="hello"
   **注意:**虽然是从右往左检索,但是在设置第二个参数的时候指定开始查找的位置还是从左往右数的,只是查找的时候是从右往左
 
 
- 
+
 
 ### 8.5 strartsWith,endsWith与includes方法
 
@@ -5638,7 +5638,7 @@ Proxy {a: 4, b: 2, c: 3}
   ```
 
 
-**注:**Proxy实例还可以设置很多方法,在这里值将set()与get()的用法
+**注:**Proxy实例还可以设置很多方法,在这里只讲set()与get()的用法
 
 
 

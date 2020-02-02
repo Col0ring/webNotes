@@ -63,9 +63,9 @@ less中的注释和CSS一样有两种单行注释//，多行注释/**/
 
 - 变量作为普通的属性值使用,直接用这个变量:@变量名
 
-- 变量作为选择器或者属性名来使用,需要在变量两边加上{}:@{变量名}
+- **变量作为选择器或者属性名来使用,需要在变量两边加上{}:@{变量名}**
 
-- 变量作为url，使用时也需要在两边加上{}:@{url}
+- **变量作为url，使用时也需要在两边加上{}:@{url}。（其实就是如果变量是被引号包住的就需要加）**
 
 - 变量的加载会有延迟效果,当整个文件的所有东西被加载完时才会将变量赋值给对应的属性
 
@@ -511,3 +511,139 @@ less的继承性能上高于less的混合,但是灵活性弱于混合,继承不�
   ```
 
   
+
+## 11.条件语句
+
+**less没有if / else 但是less具有一个when，and，not与","语法。**
+
+```less
+/* Less */
+#card{
+    // and 运算符 ，相当于 与运算 &&，必须条件全部符合才会执行
+    .border(@width,@color,@style) when (@width>100px) and(@color=#999){
+        border:@style @color @width;
+    }
+    // not 运算符，相当于 非运算 !，条件为 不符合才会执行
+    .background(@color) when not (@color>=#222){
+        background:@color;
+    }
+    // , 逗号分隔符：相当于 或运算 ||，只要有一个符合条件就会执行
+    .font(@size:20px) when (@size>50px) , (@size<100px){
+        font-size: @size;
+    }
+}
+#main{
+    #card>.border(200px,#999,solid);
+    #card .background(#111);
+    #card > .font(40px);
+}
+/* 生成后的 CSS */
+#main{
+    border:solid #999 200px;
+    background:#111;
+    font-size:40px;
+}
+```
+
+### 11.1 条件运算符
+
+**比较运算符：**`>`、`>=`、 `=` 、`<=` 、`<`
+
+**注意：**
+
+- =代表是等于
+
+- less中有布尔值true和false，除去关键字true以外的值其他都会被默认为false
+
+
+
+## 12.循环语句
+
+**less并没有提供一个for等循环的方法但是可以使用递归的方法实现。**
+
+```less
+/* Less */
+.generate-columns(4);
+.generate-columns(@n, @i: 1) when (@i =< @n) {
+    .column-@{i} {
+        width: (@i * 100% / @n);
+    }
+    .generate-columns(@n, (@i + 1));
+}
+/* 生成后的 CSS */
+.column-1 {
+    width: 25%;
+}
+.column-2 {
+    width: 50%;
+}
+.column-3 {
+    width: 75%;
+}
+.column-4 {
+    width: 100%;
+}
+```
+
+
+
+**案例：**less循环输出类名
+
+**目标输出**
+
+```css
+.a{
+  background: url("./resource/a.png") top/100% no-repeat;
+}
+.b{
+  background: url("./resource/b.png") top/100% no-repeat;
+}
+.c{
+  background: url("./resource/c.png") top/100% no-repeat;
+}
+```
+
+**实现思路**
+
+- 由于形式上面很类似，所以先定义一个模板函数。
+- 定义一个less列表，把需要的类名都写上。
+- 循环遍历列表，调用函数。
+
+**实现步骤**
+
+1. 定义函数
+
+    ```less
+.backgroundcard(@className,@pngName){
+        .@{className}{
+            background: url("./resource/@{pngName}.png") top/100% no-repeat;
+        }
+    }
+    ```
+
+1. 定义一个数组
+
+    ```less
+    @bgcardList:a,b,c,d,e,f,g;
+    ```
+
+1. 循环遍历
+
+    ```less
+    .loop(@i) when (@i < length(@bgcardList)+1){
+        .backgroundcard(extract(@bgcardList, @i),extract(@bgcardList, @i));
+        .loop(@i+1);
+    }
+    .loop(1);
+    ```
+
+**语法**
+
+```markdown
++ 列表函数
+    - 获取列表的长度  length(@bgcardList)  //7
+    - 获取列表元素  extract(@bgcardList, 3)  //c
++ 循环函数
+    - loop定义循环次数，when条件判断，符合进入函数，不符合不进入函数。之后次数+1，形成循环。
+    - loop函数调用，直接传值1。
+```

@@ -26,7 +26,7 @@
 
 
 
-**拓展:Buffer**
+### 2.2 Buffer
 
 **Buffer是一种数据结构,里面专门存放二进制数据,而为了方便将里面的数据显示,所以用了十六进制来进行显示**
 
@@ -42,7 +42,173 @@ console.log(str2);//123
 
 
 
-### 2.2 读写文件
+## 3.模块系统
+
+**在node中有三种模块:**
+
+- 具体的核心模块
+- 用户自己编写的文件模块
+- 第三方模块
+
+### 3.1 node如何实现模块化
+
+node实现模块化的方法很简单，就是闭包，每个模块在运行时默认都是在最外层放了一个模块包装函数（Module Wrapper Function）中，node通过调用这个封装过的函数实现的模块化。
+
+```js
+(function (exports, require, module, __filename, __dirname) {
+
+}
+```
+
+**每个模块中的代码都是包裹在一个立即执行函数中的,同时立即执行函数都有5个形参**
+
+- exports:专门用来暴露模块数据的一个对象
+- require:专门用来引入外部模块的函数
+- module:内置的模块系统对象，具体介绍见下
+
+- __filename:当前文件的绝对路径
+- __dirname:当前文件夹的路径
+
+**注意:**
+
+- 在node文件操作中,相对路径并不可靠,因为node中的文件路径被设计为相对于执行node命令所处的路径,所以推荐使用path.join加上`__dirname`和`__filenmae`把路径转换为绝对路径
+
+- 而模块中的路径表示与文件操作中的不一致,用相对路径就好了
+
+  
+
+### 3.2 全局对象global
+
+与浏览器端的`window`对象一样，**`global`也是作为一个全局对象存在的**，该对象中包含了许多node应用内置的属性和方法（比如我们使用的`console`对象其实在node环境中是挂载到global对象上的）。
+
+**可以见到，由node实现模块化的情况来看，所有的代码最后都集合在一起，而global是作为最外层和模块同作用域的顶级对象来存在的。**
+
+通过在global对象挂载属性可以在其他模块进行访问,通过不声明直接命名的方式可以实现
+
+```js
+let a = 1
+global.a = a // 这样在另外的模块中也可以同global.a使用，但是不推荐这样做，或污染全局环境
+```
+
+相比起全局对象，我们更希望通过挂在到exports对象上来实现
+
+**注意：**
+
+- 即使是使用`var`声明的变量也不会默认挂载到全局对象上，这点和浏览器端的`window`对象有区别，需要手动挂载	
+
+    ```js
+    console.log(global)
+    var message = ''
+    console.log(global.message) // undefined
+    global.message = message // 挂载到全局对象上，所有模块都能访问
+    ```
+
+- 挂载到global对象上的属性同window对象上的一样，可以不加顶级对象直接使用挂载的属性（前提是有属性挂载过，否则会报错）
+
+  ```js
+  global.a = 1
+  console.log(a) // 1
+  ```
+
+  
+
+### 3.3 模块对象module
+
+`module`是node中内置的模块系统对象，该对象内部拥有几个与模块相关的属性。
+
+```js
+console.log(module)
+/*
+  Module {
+      id: '.',
+      exports: {},
+      parent: null,
+      filename: 'E:\\demo\\学习项目\\node\\2.module-object.js',
+      loaded: false,
+      children: [],
+      paths:
+       [ 'E:\\demo\\学习项目\\node\\node_modules',
+         'E:\\demo\\学习项目\\node_modules',
+         'E:\\demo\\node_modules',
+         'E:\\node_modules' 
+      ] 
+     }
+*/
+```
+
+**属性：**
+
+- **id:**当前模块的唯一标识，是以node执行的入口js文件和项目工程为参照的绝对路径，默认入口的id为`.`，其余文件的id为其绝对路径
+- **filename:**当前文件的绝对路径，其实默认是和id的值是一样的
+- **parent和children:**相对而言的属性，一个模块被另一个模块引用，另一个模块就是该模块的父模块，相对的，该模块是另一模块的子模块
+- **loaded:**当前模块是否加载完成
+- **path:**node解析策略构成的一个数组
+- **exports:**与全局的exports共用一个内存，但是在导出模块的时候该属性下的内存起主导作用
+
+
+
+### 3.4 核心模块
+
+node为JS提供了很多服务器级别的API,这些API绝大多数都被包装到了一个具体的核心模块中了,例如文件操作的`fs`模块,`http`服务构建的http模块,`path`的路径模块,`os`操作系统信息模块,`url`专门对域名进行处理等`querystring`模块专门处理查询字符串,所有模块的使用都需要通过require()来获取
+
+#### 3.4.1 path模块
+
+[path模块api](http://nodejs.cn/api/path.html)
+
+- **path.basename:**获取一个路径的文件名(默认包含扩展名)
+
+- **path.dirname:**获取一个路径的目录部分
+
+- **path.parse:**把一个路径转为对象
+
+  **对象属性:**
+
+  - root:根路径
+  - dir:目录
+  - base:包含后缀名的文件名
+  - ext:后缀名
+  - name:不包含后缀名的文件名
+
+- **path.join:**当需要进行路径拼接的时候,推荐使用这个方法
+
+- **path.isAbsolute:**判断一个路径是否是绝对路径
+
+```js
+const path = require('path')
+const pathObj = path.parse(__filename)
+console.log(pathObj)
+/*
+{ root: 'E:\\',
+  dir: 'E:\\demo\\学习项目\\node',
+  base: 'app.js',
+  ext: '.js',
+  name: 'app' }
+*/
+```
+
+
+
+#### 3.4.2 os模块
+
+[os模块api](http://nodejs.cn/api/os.html)
+
+```js
+const os = require('os')
+const totalMemory = os.totalmem()
+const freeMemory = os.freemem()
+console.log(`Total Memory: ${totalMemory}`)
+console.log(`Free Memory: ${freeMemory}`)
+/*
+Total Memory: 8468779008
+Free Memory: 1898426368
+*/
+```
+
+
+
+#### 3.4.3 fs模块
+
+[fs模块api](http://nodejs.cn/api/fs.html)
 
 **浏览器中的JS是没有操作文件的能力的,但是node中的JS具有文件操作的能力**
 
@@ -123,8 +289,6 @@ fs是file-system的简写,就是文件系统,在node中如果想进行文件操�
   });
   ```
 
-  
-
 - **删除文件**
 
   ```js
@@ -132,7 +296,6 @@ fs是file-system的简写,就是文件系统,在node中如果想进行文件操�
   var fs=require("fs");
   fs.unlinkSync("b.txt");
   ```
-
 
 - **删除目录**
 
@@ -200,11 +363,108 @@ fs是file-system的简写,就是文件系统,在node中如果想进行文件操�
   })
   ```
 
-  
 
-### 2.3 http
+
+#### 3.4.4 events模块
+
+[event模块api](http://nodejs.cn/api/events.html)
+
+大多数 Node.js 核心 API 构建于惯用的异步事件驱动架构，其中某些类型的对象（又称触发器，Emitter）会触发命名事件来调用函数（又称监听器，Listener）。
+
+例如，[`net.Server`](http://nodejs.cn/s/gBYjux) 会在每次有新连接时触发事件，[`fs.ReadStream`](http://nodejs.cn/s/C3Eioq) 会在打开文件时触发事件，[stream](http://nodejs.cn/s/kUvpNm)会在数据可读时触发事件。
+
+所有能触发事件的对象都是 `EventEmitter` 类的实例。 这些对象有一个 `eventEmitter.on()` 函数，用于将一个或多个函数绑定到命名事件上。 事件的命名通常是驼峰式的字符串，但也可以使用任何有效的 JavaScript 属性键。
+
+当 `EventEmitter` 对象触发一个事件时，所有绑定在该事件上的函数都会被同步地调用。 被调用的监听器返回的任何值都将会被忽略并丢弃。
+
+```js
+// 注意，导入的对象其实是一个事件类，events模块的许多方法都是基于这个类实现
+const EventEmitter = require('events')
+const emitter = new EventEmitter()
+
+// 注册一个监听器 on 与 addeventListener 是一样的
+emitter.on('messageLogged', arg => {
+  console.log('Listener called', arg)
+})
+
+emitter.addListener('messageLogged', arg => {
+  console.log('Listener2 called', arg)
+})
+
+// 抛出事件，传参数更好的方法是通过传一个对象，而不是传多个形参
+emitter.emit('messageLogged', { id: 1, url: 'http://' })
+// 注意要先监听，不然没效果
+
+/*
+Listener called { id: 1, url: 'http://' }
+Listener2 called { id: 1, url: 'http://' }
+*/
+```
+
+**注意：**一般来说我们只会包装整个程序中有一个`EventEmitter`的实例，因为不同实例的监听与抛出事件是不会有效果的
+
+```js
+// logger.js
+const EventEmitter = require('events')
+const url = 'http://mylogger.io/log'
+
+class Logger extends EventEmitter {
+  log(message) {
+    // send a http request
+    console.log(message)
+
+    // raise an event
+    this.emit('messageLogged', { id: 1, url: 'http://' })
+  }
+}
+
+module.exports = Logger
+```
+
+```js
+// app.js
+
+const Logger = require('./logger')
+const logger = new Logger()
+
+logger.on('messageLogged', arg => {
+  console.log('Listener called', arg)
+})
+
+logger.log('message')
+```
+
+
+
+#### 3.4.5 http模块
+
+[http模块api](http://nodejs.cn/api/http.html)
 
 **使用node可以轻松得构建一个web服务器,在Node中专门提供了一个核心模块http,这个模块就是用来编写创建服务器的**
+
+```js
+const http = require('http')
+
+// 返回值其实是一个EventEmitter，继承了前者所有的方法
+const server = http.createServer((req, res) => {
+  if (req.url === '/') {
+    res.write('Hello World')
+    res.end()
+  } else if (req.url === '/api/courses') {
+    res.write(JSON.stringify([1, 2, 3]))
+    res.end()
+  }
+})
+
+// 监听连接的句柄，如果有人进入了监听的端口就会有响应,当然，一般不这样写，一般是在http.createServer函数的回调函数中邪
+// server.on('connection', socket => {
+//   console.log('New connection...')
+// })
+
+server.listen(3000, () => {
+  console.log('connect completely...')
+})
+```
 
 ```js
 //加载http模块
@@ -219,7 +479,9 @@ var server=http.createServer();
 */
 
 //客户端发送请求->服务端接收处理反馈请求
-//注册request请求事件,当客户端请求过来,就会自动触发服务器的request请求事件,然后执行回调函数
+/*
+注册request（与上面的connection事件是一个效果）请求事件,当客户端请求过来,就会自动触发服务器的request请求事件,然后执行回调函数
+*/
 server.on("request",function(request,response){
     /*
     	request请求事件的处理函数接收两个参数:
@@ -373,83 +635,7 @@ server.listen(3000,function(){
 
 
 
-### 2.4 path
-
-- **path.basename:**获取一个路径的文件名(默认包含扩展名)
-
-- **path.dirname:**获取一个路径的目录部分
-
-- **path.parse:**把一个路径转为对象
-
-  **对象属性:**
-
-  + root:根路径
-  + dir:目录
-  + base:包含后缀名的文件名
-  + ext:后缀名
-  + name:不包含后缀名的文件名
-
-- **path.join:**当需要进行路径拼接的时候,推荐使用这个方法
-
-- **path.isAbsolute:**判断一个路径是否是绝对路径
-
-
-
-## 3.模块系统
-
-**在node中有三种模块:**
-
-- 具体的核心模块
-- 用户自己编写的文件模块
-- 第三方模块
-
-**每个模块中的代码都是包裹在一个立即执行函数中的,同时立即执行函数都有5个形参**
-
-- exports:专门用来暴露模块数据的一个对象
-
-- require:专门用来引入外部模块的函数
-
-- module:内置的模块系统对象
-
-  **属性：**
-
-  + **id:**当前模块的唯一标识，是以node执行的入口js文件和项目工程为参照的绝对路径，默认入口的id为`.`，其余文件的id为其绝对路径
-  + **filename:**当前文件的绝对路径，其实默认是和id的值是一样的
-  + **parent和children:**相对而言的属性，一个模块被另一个模块引用，另一个模块就是该模块的父模块，相对的，该模块是另一模块的子模块
-  + **loaded:**当前模块是否加载完成
-  + **path:**node解析策略构成的一个数组
-  + **exports:**与全局的exports共用一个内存，但是在导出模块的时候该属性下的内存起主导作用
-
-- __filename:当前文件的绝对路径
-
-- __dirname:当前文件夹的路径
-
-**全局对象global**
-
-通过在global对象挂载属性可以在其他模块进行访问,通过不声明直接命名的方式可以实现
-
-```js
-let a = 1
-global.a = a // 这样在另外的模块中也可以同global.a使用，但是不推荐这样做，或污染全局环境
-```
-
-相比起全局对象，我们更希望通过挂在到exports对象上来实现
-
-
-
-**注意:**
-
-- 在node文件操作中,相对路径并不可靠,因为node中的文件路径被设计为相对于执行node命令所处的路径,所以推荐使用path.join加上`__dirname`和`__filenmae`把路径转换为绝对路径
-
-- 而模块中的路径表示与文件操作中的不一致,用相对路径就好了
-
-### 3.1 核心模块
-
-**node为JS提供了很多服务器级别的API,这些API绝大多数都被包装到了一个具体的核心模块中了,例如文件操作的fs模块,http服务构建的http模块,path的路径模块,os操作系统信息模块,url专门对域名进行处理等querystring模块专门处理查询字符串,所有模块的使用都需要通过require()来获取**
-
-
-
-### 3.2 用户自定义模块
+### 3.5 用户自定义模块
 
 在node中没有全局作用域,只有模块作用域,默认都是封闭的,外部不能访问到内部的数据,而内部也无法访问到外部,所有不会有污染的问题,但是只能通过require()方法来加载多个JS脚本文件,如果想要访问一个模块作用域中的内容,**需要同时使用require()方法与exports对象**
 
@@ -510,26 +696,9 @@ console.log(a.b);//2
 
 
 
-### 3.3 第三方模块
+### 3.6 第三方模块
 
 **模块导入：**如果模块的加载是以`./`、`../`、`/`开始的，那么就是路径模块加载模式不以`./`、`../`、`/`开始的模块，按照的是node默认的模块解析机制，会从当前目录一次向上级目录查找`node_modules`，直到不能再往上查找，例如如果是windows系统就会查找到盘符
-
-**require()方法其实就是module.require()方法，**当非路径加载模式的时候，会按照module的path属性中的数组顺序进行模块的查找
-
-
-
-## 4.事件系统
-
-[event](http://nodejs.cn/api/events.html#events_emitter_on_eventname_listener)
-
-
-
-## 5.进程
-
-process对象是一个全局变量，它提供当前Node.js的进程有关的信息，以及控制当前Node.js进程，该变量下面有很多属性，下面列出几个属性:
-
-- **argv：**接收在命令行输入的参数的数组
-- **env：**列举出当前系统的所有环境变量
 
 
 
@@ -565,6 +734,8 @@ npm install --global npm
 
   **简写:**`npm i 包名` 
 
+  **注：**如果想下载指定版本，需要在后面加上`@版本号`
+
 - **npm intall --save 包名**,下载指定包名并保存依赖项(保存在package.json文件中的dependencies选项)
 
   **简写:**`npm i -S 包名`
@@ -573,11 +744,96 @@ npm install --global npm
 
   **简写:**`npm un 包名`
 
+  **注：**如果想删除指定版本，需要在后面加上`@版本号`
+
 - **npm uninstall --save 包名**,删除包名的同时也会把依赖信息去除
 
   **简写:**`npm un -S 包名`
+
+- **npm list**,以树形的形式列出所有的包依赖。**npm list --depth=0**,列出当前项目直接的包依赖
+
+- **npm view 包名**,查看指定包的`package.json`文件，如果只想看该文件中的某个属性，后面再加个空格更上属性名。同时，**npm view 包名 versions**可以查看该包发布过的所有版本
+
+- **npm outdated**,对比查看依赖包的版本信息
+
+- **npm update**,更新依赖包的次要版本和补丁版本
+
+  **注：**如果主要版本改变，只会更新到次要版本的最高版本。如果要更新主要版本，需要再全局按照一个包管理工具**`npm-check-updates`**
+
+  ```shell
+  npm i npm-check-updates -g
+  ```
+
+  然后在项目中运行`npm-check-updates`就能找到需要更新的包，再运行`ncu -u`就能更新大版本了。
+
+  **注：**只是更新了`package.json`中的版本，并没有安装依赖，需要`npm i`安装依赖
+
+- **npm login**,登录npm账号
+
+- **npm publish**,发布一个包到npm（需要登录）
 
 - **npm help**,查看命令使用帮助
 
 - **npm 命令 --help**,查看指定命令使用帮助
 
+
+
+### 4.4 包版本管理
+
+npm使用语义版本号分为`X.Y.Z`三位，分别代表**主版本号**、**次版本号**和**补丁版本号**。当代码变更时，版本号按以下原则更新：
+
+1. 如果只是修复bug，需要更新Z位。
+2. 如果是新增了功能，但是向下兼容，需要更新Y位。
+3. 如果有大变动，向下不兼容，需要更新X位。
+
+**同时，npm还使用了`~`和`^`来帮忙推断安装依赖时应该选择哪个版本：**
+
+- ~version（也就是`X.x`）
+  - 如果次版本号指定，那么次版本号不变，而补丁版本号可以任意
+  - 如果次版本号和补丁版本号未指定，那么次版本号和补丁版本号可以任意
+
+- ^version（也就是X.Y.x）
+  - 版本号中最左非零位不变，它右侧其他位可以任意
+  - 如果缺少某个版本号，那么这个版本号可以任意
+
+当然，如果要安装指定版本直接改成x.y.z的形式就行了。
+
+
+
+## 5.进程process
+
+[process的api文档](http://nodejs.cn/api/process.html#process_process)
+
+`process` 对象是一个全局变量（默认挂载在global对象上的），它提供有关当前 Node.js 进程的信息并对其进行控制。 作为一个全局变量，它始终可供 Node.js 应用程序使用，无需使用 `require()`。 它也可以使用 `require()` 显式地访问：
+
+```js
+const process = require('process')
+```
+
+它提供当前Node.js的进程有关的信息，以及控制当前Node.js进程，该变量下面有很多属性，下面列出几个属性:
+
+- **argv：**接收在命令行输入的参数的数组
+
+- **env：**列举出当前系统的所有环境变量，是一个json对象，在windows中环境变量通过set来申明，mac是export
+
+  **注：**一个好用的获取环境变量的库`config`，`npm i config -S`
+
+### 5.1 处理未被捕获的错误
+
+在node的运行中，如果在中途遇到错误会直接导致node程序崩溃，在很多情况下我们都能够去捕获到这些错误，但是如果并没有捕获，又不想程序崩溃，我们可以善用process监听`uncaughtException`事件与`unhandledRejection`（可以看出process也继承了事件触发器）
+
+```js
+// 同步错误
+process.on('uncaughtException', (e) => {
+    console.log(e)
+})
+// 没有被catch的promise的reject
+process.on('uncaughtException', (e) => {
+    console.log(e)
+	// throw e // 也可以抛出错误变成同步的
+})
+```
+
+**注：**使用`uncaughtException`只能够捕获到如`throw Error()`这样的同步代码错误，无法监听到被rejected的promise。
+
+**注意：**在程序报异常的时候，我们最好的做法是立刻终止程序，而不是让它处于未完成的状态。

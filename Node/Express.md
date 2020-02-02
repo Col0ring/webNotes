@@ -549,3 +549,36 @@ app.use(function(err,req,res,next){//上面传入的错误对象会直接复制�
 })
 ```
 
+当然，我们可以自定义错误处理的中间件，比如使用一个函数来进行包装（比如使用promise时）
+
+```js
+// middleware/async.js
+module.export = function (handler) {
+    return async (req, res, next) => {
+        try{
+        	await handler(req, res)
+        }catch(e){
+            next(e)
+        }
+    }
+}
+```
+
+```js
+const asyncMiddleware = require('../middleware/async')
+app.use(asyncMiddleware(async (req, res) => {
+    await // do something
+}))
+```
+
+**当然，这样每次调用还是很麻烦，最后的方法是使用`express-async-errors`来帮忙处理异常。**
+
+```js
+// 直接加载，在index.js中加载全局引入
+require('express-async-errors')
+
+app.use((req, res ,next) => {
+    await // do something
+})
+```
+
