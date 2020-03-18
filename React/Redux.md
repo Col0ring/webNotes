@@ -273,7 +273,7 @@ import { createStore } from 'redux';
 let { subscribe, dispatch, getState } = createStore(reducer);
 ```
 
-`createStore`方法还可以接受**第二个参数，**表示 State 的最初状态。这通常是**服务器给出的**
+`createStore`方法还可以接受**第二个可选参数，**表示 State 的最初状态。这通常是**服务器给出的**
 
 ```js
 let store = createStore(todoApp, window.STATE_FROM_SERVER)
@@ -309,6 +309,8 @@ const createStore = (reducer) => {
     return { getState, dispatch, subscribe };
 };
 ```
+
+**而`createStore`总共有可以三个参数：`createStore(reducer, [initialState], enhancer)`，第三个参数是使用`applyMiddlewares`生成的对象，第二个参数如果是该对象那么 Redux 会将它作为第三个参数使用。**
 
 
 

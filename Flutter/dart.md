@@ -998,7 +998,7 @@ const Scrollbar({Key key, @required Widget child})
 
 
 
-#### 4.4.3 默然参数值
+#### 4.4.3 默认参数值
 
 可以使用 = 来定义命名和位置参数的默认值。**默认值必须是编译时常量**。如果没有提供默认值，则默认值为 null。
 
@@ -2240,7 +2240,7 @@ Future greet() async {
 
 ### 7.5 库的实现
 
-**实现库的适合可以依靠`part`和`part of`关键字：**
+**实现库的时候可以依靠`part`和`part of`关键字：**
 
 - 为了维护一个库，我们可以把各个功能放到各个`dart`文件中
 - 但`part of`所在文件不能包括`import、library`等关键字
