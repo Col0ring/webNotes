@@ -2141,6 +2141,8 @@ import 和 library 指令可以帮助创建模块化和可共享的代码库。�
 
 **注：**每个 dart 应用程序都是一个库，即使它不使用库指令。
 
+
+
 ### 7.1 使用库
 
 - 使用`import`来指定如何在另一个库的范围中使用来自一个库的命名空间。
@@ -2165,9 +2167,174 @@ import 和 library 指令可以帮助创建模块化和可共享的代码库。�
   library person;
   ```
 
+
+
+
+### 7.2 dart 中的三种库
+
+在 dart 中主要有三种库：
+
+- 自定义库
+
+  ```dart
+  import 'lib/hello.dart';
+  ```
+
+- 系统内置库
+
+  ```dart
+  import 'dart:math';
+  import 'dart:io';
+  import 'dart:convert';
+  ```
+
+- pub 包管理器中的第三方库（pub 中的包都可以在 [pub.dev](https://pub.dev) 中找到）
+
+  要下载第三方库，需要在项目根目录创建一个`pubspec.yaml`的文件，然后在其中写入对应的依赖项，保存后 pub 会自动去下载对应的依赖。
+
+#### 7.2.1 YAML 文件的语法
+
+YAML 是一个类似 XML、JSON 的标记性语言。YAML 强调以数据为中心，并不是以标识语言为重点。
+
+**规范：**
+
+- 大小写敏感
+- 缩进代表层级，使用空格，默认2个空格（flutter工具做了处理，tab也可以）
+- \# 表示注释内容
+-  : 表示键值对，注意后面要空格
+-  {} 表示键值表
+-  \- 表示列表，注意后面要空格
+-  [] 表示数组，注意每项之间有空格
+-  ? 表示复杂的键
+
+```yaml
+# 键值对，表示app的名字为flutter_app
+name: flutter_app
+description: A new Flutter application.
+# 环境，flutter的sdk版本在此之间
+environment:
+  sdk: ">=2.0.0-dev.68.0 <3.0.0"
+
+# 依赖库
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.2
+  event_bus: ^1.0.1
+  shared_preferences: "^0.4.3"
+  flutter_refresh: ^0.0.1
+
+#测试环境的依赖库
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  #使用Material图标
+  uses-material-design: true
+  #assets文件
+  assets:
+    - images/head.png
+    - images/1.gif
+  #字体样式
+  fonts:
+     #family与fonts是一个整体，列表的一项
+     - family: Schyler
+       fonts:
+         - asset: fonts/Schyler-Regular.ttf
+         - asset: fonts/Schyler-Italic.ttf
+           style: italic
+     - family: Trajan Pro
+       fonts:
+         - asset: fonts/TrajanPro.ttf
+         - asset: fonts/TrajanPro_Bold.ttf
+           weight: 700
+```
+
+**注：**`-`可转化为`[]`，`:`也可以转化为`{}`，转化后类似 json
+
+```yaml
+dependencies: {flutter: {sdk: flutter}, cupertino_icons: ^0.1.2, event_bus: ^1.0.1, shared_preferences: "^0.4.3", flutter_refresh: ^0.0.1}
+
+assets: [images/head.png, images/1.gif]
+```
+
+**对于字符串：**
+
+- 字符串
+
+    ```yaml
+     str0: '我是字符串'
+     #双引号不会对特殊字符转义
+     str1: "It's a test"
+     #单引号中单引号的字符，需要转义
+     str2: 'It''s a test'
+     #~是空的意思
+     str3: ~ 
+     # 两个!表示强制转换，!!str 表示强制转为str
+     str4: !!str true
+     str5: 也可以不用引号引起来，厉害不
+     str6: '有空格 或者 特殊字符* 就必须放在引号中了'
+     str7: <p style="color:red">Hello world<p>
+    ```
+
+    转换为 json
+
+    ```json
+    { 
+        str0: '我是字符串',
+        str1: 'It\'s a test',
+        str2: 'It\'s a test',
+        str3: null,
+        str4: 'true',
+        str5: '也可以不用引号引起来，厉害不',
+        str6: '有空格 或者 特殊字符* 就必须放在引号中了',
+        str7: '<p style="color:red">Hello world<p>' 
+    }
+    ```
+
+- 换行
+
+  ```yaml
+   str8: #每行用空格代替换行符，每行行尾空格无效
+    第一行            
+    第二行       
+    第三行     
+   str9: | #每行都有换行符
+    第一行    
+    第二行   
+    第三行   
+   str10: > #末尾有换行符，中间用空格代替换行符
+    第一行   
+    第二行    
+    第三行  
+   str11: |- #末尾去除换行符
+    第一行 
+    第二行   
+    第三行      
+   str12: |+ #末尾添加换行符
+    第一行  
+    第二行   
+    第三行   
+  ```
+
+  转换为 json
+
+  ```json
+  { 
+      str8: '第一行 第二行 第三行',
+      str9: '第一行    \n第二行   \n第三行   \n',
+      str10: '第一行    第二行     第三行  \n',
+      str11: '第一行 \n第二行   \n第三行       ',
+      str12: '第一行  \n第二行   \n第三行   \n' 
+  }
+  ```
   
 
-### 7.2 指定一个库前缀
+
+
+
+### 7.3 指定一个库前缀
 
 如果导入两个具有冲突标识符的库，那么可以为一个或两个库指定一个前缀（命名空间）。
 
@@ -2184,7 +2351,7 @@ lib2.Element element2 = lib2.Element();
 
 
 
-### 7.3 库的可见性
+### 7.4 库的可见性
 
 如果只想使用库的一部分，可以有选择地导入库，这也是库的可见性。
 
@@ -2203,7 +2370,7 @@ import 'package:lib2/lib2.dart' hide foo;
 
 
 
-### 7.4 懒加载库
+### 7.5 懒加载库
 
 **延迟加载（也称为懒加载）允许应用程序在需要时按需加载库。**
 
@@ -2238,7 +2405,7 @@ Future greet() async {
 
 
 
-### 7.5 库的实现
+### 7.6 库的实现
 
 **实现库的时候可以依靠`part`和`part of`关键字：**
 
@@ -2454,7 +2621,7 @@ task() async {
   }
   ```
 
-- 使用Stream API，如[库的引导]中的描述
+- 使用Stream API
 
   ```dart
   Stream.fromFutures([
@@ -2484,6 +2651,8 @@ task() async {
   I/flutter (17666): hello 3
   */
   ```
+  
+  具体的 Stream 的 API 还有很多，比如创建一个 Stream 的实例等，在这里就不再赘述，想了解更多可查看相关文档。
 
 
 

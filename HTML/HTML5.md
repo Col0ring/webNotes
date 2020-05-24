@@ -127,7 +127,7 @@ FileReader API 用于读取文件，即把文件内容读入内存，是一种�
 //创建读取文件的对象
 var reader = new FileReader();	
 
-readAsDataURL(Blob|File);
+//readAsDataURL(Blob|File);
 //读取文件并将文件以数据URI的形式保存在result属性中，返回一个基于 Base64 编码的 data-uri 对象
 reader.readAsDataURL(files[0]);
 
@@ -291,7 +291,6 @@ function createObject(blob){
   	}
 }
 //createObject函数的返回值是一个字符串，指向一块内存地址。因为这个字符串是URL，所以在DOM中也能使用
-var reader = new FileReader()
 var url = createObject( files[0] )
 if( url ){
   	if( /image/.test(files[0].type) ){
@@ -309,7 +308,15 @@ if( url ){
 
 **删除对象URL**
 
-出于一些特殊的需要,也可以使URL失效,调用`window.URL.revokeObjectURL(url)` 方法,使 URL失效
+**注意：** `window.URL.createObjectURL` 生成的数据链接是独占内存的，因此若不时用时需要调用 `window.URL.revokeObjectURL(url)` 来释放内存。在刷新页面时，也会自动释放内容。
+
+```js
+var resolveObjectURL = function(blob){
+    window[window.webkitURL ? 'webkitURL' : 'URL']['revokeObjectURL'](blob)
+}
+```
+
+
 
 
 

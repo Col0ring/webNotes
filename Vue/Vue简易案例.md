@@ -273,3 +273,39 @@ export default vDrap
 <el-dialog v-drag title="对话框" :visible.sync="dialogVisible"></el-dialog>
 ```
 
+
+
+## 5.实现高阶组件
+
+```js
+function WithConsole (WrappedComponent) {
+    return {
+        mounted () {
+            console.log('I have already mounted')
+        },
+        // 高阶组件的props和被接受的props一样
+        props: WrappedComponent.props,
+        render (h) {
+            // this.slots是传入的的插槽
+            const slots = Object.keys(this.$slots)
+            .reduce((arr, key) => arr.concat(this.$slots[key]), [])
+            // 手动更正 context
+            .map(vnode => {
+              vnode.context = this._self //绑定到高阶组件上(默认子组件找的是父组件)
+              return vnode
+            })
+
+            return h(WrappedComponent, {
+                // this.$listeners是传入的所有事件
+                on: this.$listeners,
+                // this.$props是设置的的所有props
+                props: this.$props,
+                // this.$attrs为所有写在高阶组件上的attrs
+                attrs: this.$attrs
+                // 第三个参数为slots
+            }, slots)
+        }
+    }
+}
+```
+
