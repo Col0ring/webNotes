@@ -138,6 +138,10 @@
   - `dev`分支是开发分支，团队所有成员都需要在上面工作，所以也需要与远程同步
   - bug分支只用于在本地修复bug，就没必要推到远程了，除非老板要看看你每周到底修复了几个bug
   - feature分支是否推到远程，取决于你是否和你的小伙伴合作在上面开发
+  
+- `git push --delete 分支名`:删除远程上的某个分支
+
+- `get fetch`：更新远程仓库的所有分支到本地（并不是在本地创建，而是在使用`git branch -r`查看远程分支的时候能找到对应的远程分支）
 
 ### 7.1 合作开发
 
@@ -148,6 +152,16 @@
 ### 7.2 推送冲突
 
 如果你的提交和远程仓库中别人最新的提交有冲突,那么就会推送失败,无法推送到远程仓库,这个时候先用`git pull`把最新的提交从`origin/dev`抓下来，然后，在本地合并，解决冲突，再推送。但是这个`dev`分支会`pull`失败,原因是没有指定本地`dev`分支与远程`origin/dev`分支的链接，根据提示(pull错误里面会有)，设置`dev`和`origin/dev`的链接：`git branch --set-upstream-to=origin/dev dev`。再次`pull`就能成功了，然后就是手动解决冲突的问题,然后再次提交,再次`push`
+
+强制让远程分支覆盖本地分支：
+
+```shell
+git fetch --all
+git reset --hard origin/master
+git pull origin master
+```
+
+
 
 
 
