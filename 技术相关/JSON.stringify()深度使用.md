@@ -38,6 +38,27 @@
 
     JSON.stringify(data); // "{"a":"a","b":null}",b属性没有被忽略
     ```
+    
+- 如果对象中某个熟悉不可枚举，也会被忽略
+
+    ```js
+    const obj = Object.create({},{
+      name:{
+        value:'zhangsan',
+        enumerable:false
+      },
+      age:{
+        value:18,
+        enumerable:true
+      }
+    })
+    console.log(obj)  // {age: 18, name: "zhangsan"}
+    console.log(JSON.stringify(obj))  // {"age":18}
+    ```
+
+    
+
+### 1.1 toJSON 方法
 
 **注意：**自定义对象属性的时候, 尽量不要定义toJSON方法，因为toJSON会把其他的属性都覆盖掉
 
@@ -49,6 +70,14 @@ const data = {
     }
 }
 JSON.stringify(data); //"true"  (toJSON会把其他的属性都覆盖掉)
+```
+
+如果`toJSON`没有返回值，结果就为`undefined`
+
+关于`toJSON	的使用，`Date类型内部就对其做了修改：
+
+```js
+console.log(JSON.stringify(new Date()))  // "2020-06-21T11:55:43.970Z"
 ```
 
 
@@ -67,11 +96,11 @@ JSON.stringify(data); //"true"  (toJSON会把其他的属性都覆盖掉)
 
 ```js
 const replace = function(k, v) {
-　　 if(v === undefined) {　　　　return 'undefined';　　 }
-    if(typeof v === 'function') {
-    　return Function.prototype.toString.call(v);
-    }
-    return v;
+  if(v === undefined) {　　　　return 'undefined';　　 }
+  if(typeof v === 'function') {
+    return Function.prototype.toString.call(v);
+  }
+  return v;
 }
 
 JSON.stringify(data, replace);  //"{"a":"a","c":"undefined","b":"function () {\n         return true;\n    }"}"

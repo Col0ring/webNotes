@@ -6229,7 +6229,7 @@ console.log(g.return('foo'))// { value: "foo", done: true }
 console.log(g.next());// { value: undefined, done: true }
 ```
 
-## 
+
 
 ### 22.4 for...of循环
 
