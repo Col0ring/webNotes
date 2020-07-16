@@ -1,5 +1,7 @@
 # React Hooks
 
+## 引言
+
 **设计Hooks主要是解决ClassComponent的几个问题：**
 
 - 很难复用逻辑（只能用 HOC，或者 render props），会导致组件树层级很深
@@ -537,7 +539,7 @@ const App = () => {
 
 ![img](https://imgconvert.csdnimg.cn/aHR0cHM6Ly9tbWJpei5xcGljLmNuL21tYml6X2dpZi9aV1Z4clE3RzBXU2RpYmRpY1Zwanc1S1g3S0JMVkNzNGszMmV2SVN6NG1DOFRqWVhFNDZFeVdHeXFhc0UxTnc2NGdzM0p3QjZmeUZBTjRPVkx1aWFMVEFWUS82NDA?x-oss-process=image/format,png)
 
-因为一直都存在 refFromUseRef.curren，所以并不会改变值。
+因为一直都存在 refFromUseRef.current，所以并不会改变值。
 
 #### 4.1.2 替代 this
 
@@ -647,7 +649,7 @@ forwardRef 准确来说不是 hooks 中的内容，但是如果我们要使用 u
 
 该方法的作用是：**引用父组件的 ref 实例，成为子组件的一个参数，可以引用父组件的 ref 绑定到子组件自身的节点上。**
 
-该方法可以看做是一个高阶组件，本身 props 只带有 children 这个参数，它能加从父组件拿到的 ref 和 props 传入给子组件，由子组件来调用父组件传入的 ref。
+该方法可以看做是一个高阶组件，本身 props 只带有 children 这个参数，它能将从父组件拿到的 ref 和 props 传入给子组件，由子组件来调用父组件传入的 ref。
 
 **传入的组件会接收到两个参数，一个是父组件传递的 props，另一个就是 ref 的引用。**
 
@@ -670,7 +672,7 @@ function InputWithLabel(props) {
   )
 }
 
-// 这里用forwardRef来承接得到父级传入的ref节点，并将其以参数的形式传给字节点
+// 这里用forwardRef来承接得到父级传入的ref节点，并将其以参数的形式传给子节点
 const RefInput = React.forwardRef((props, ref) => (
   <InputWithLabel {...props} myRef={ref} />
 ))
@@ -943,7 +945,7 @@ useCallback 的用法和 useMemo 类型，是专门用来缓存函数的 hooks�
 let memoizedState = null
 function useCallback(callback, inputs) {
   const nextInputs =
-    inputs !== undefined && inputs !== null ? inputs : [callback]
+        inputs !== undefined && inputs !== null ? inputs : [callback]
   const prevState = memoizedState;
   if (prevState !== null) {
     const prevInputs = prevState[1]
@@ -957,7 +959,7 @@ function useCallback(callback, inputs) {
 
 // useMemo的实现原理
 function useMemo(callback, inputs){
-   return useCallback(callbak(),inputs)
+  return useCallback(callbak(),inputs)
 }
 ```
 
@@ -1026,7 +1028,7 @@ useDebugValue 接收两个参数，根据传入参数数量的不同有不同的
   ```jsx
   const date = new Date()
   useDebugValue(date, date => date.toDateString())
-```
+  ```
 
 
 
@@ -1077,3 +1079,10 @@ function MyHooksComponent() {
 export default MyHooksComponent
 ```
 
+
+
+## 参考
+
+- [你不知道的 useRef](https://zhuanlan.zhihu.com/p/105276393)
+- [React Hooks 入门教程 - 阮一峰](http://www.ruanyifeng.com/blog/2019/09/react-hooks.html)
+- [React Hooks 官方文档](https://reactjs.org/docs/hooks-intro.html)
