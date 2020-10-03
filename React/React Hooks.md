@@ -1,4 +1,4 @@
-# React Hooks
+#  React Hooks
 
 ## 引言
 
@@ -126,7 +126,7 @@ function render () {
 let memoizedState
 function useReducer(reducer, initialArg, init) {
     let initState = void 0
-    if (typeof init !== 'undefined') {
+    if (typeof init === 'function') {
         initState = init(initialArg)
     } else {
         initState = initialArg
@@ -936,7 +936,19 @@ useCallback 的用法和 useMemo 类型，是专门用来缓存函数的 hooks�
 
 **注意：**第二个参数目前只用于指定需要判断是否变化的参数，并不会作为形参传入回调函数。**建议回调函数中使用到的变量都应该在数组中列出。**
 
-要在回调函数中传入参数，我们最好使用高阶函数的方法，useCallback 会帮我们缓存这个高阶函数，如上所示。
+要在回调函数中传入参数，我们可以使用高阶函数的方法，useCallback 会帮我们缓存这个高阶函数，如上所示。
+
+当然，同样可以在`callback`中写入形参：
+
+```js
+const memoizedCallback = useCallback(
+  (a, b) => {
+    doSomething(a, b)
+  },
+  [],
+)
+// memoizedCallback 其实就是传入的回调函数
+```
 
 可以看出，都是当依赖项方式改变时，才触发回调函数。因此，我们可以认为：`useCallback(fn, input)` 等同于 `useMemo(() => fn, input)`
 
@@ -974,7 +986,7 @@ function MemoCount() {
     
     memoSetCount = useCallback(()=>{
         setCount(count + 1)
-    },[])
+    },[count])
     
     return (
         <div>
@@ -983,7 +995,7 @@ function MemoCount() {
                 >
                 Update Count
             </button>
-            <div>{color}</div>
+            <div>{count}</div>
         </div>
     )
 }
@@ -1086,3 +1098,4 @@ export default MyHooksComponent
 - [你不知道的 useRef](https://zhuanlan.zhihu.com/p/105276393)
 - [React Hooks 入门教程 - 阮一峰](http://www.ruanyifeng.com/blog/2019/09/react-hooks.html)
 - [React Hooks 官方文档](https://reactjs.org/docs/hooks-intro.html)
+

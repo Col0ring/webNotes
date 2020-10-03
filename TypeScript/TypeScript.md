@@ -1588,7 +1588,7 @@ function tryGetFirstElement<T>(arr?: T[]) {
 }
 ```
 
-对于函数来说还有可选调研，如果函数不是`undefined`或`null`才会对后续函数进行调用：
+对于函数来说还有可选链，如果函数不是`undefined`或`null`才会对后续函数进行调用：
 
 ```typescript
 // 也许我们以前会这样用：
@@ -4916,7 +4916,7 @@ class SmartObject implements Disposable, Activatable {
     setInterval(() => console.log(this.isActive + ' : ' + this.isDisposed), 500)
   }
 
-  interact() {
+  interact() {Record
     this.activate()
   }
 
